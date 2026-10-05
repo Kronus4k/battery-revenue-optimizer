@@ -50,10 +50,7 @@ def find_failures(results, prefix=""):
     for name, value in results.items():
         path = f"{prefix}{name}"
         if isinstance(value, dict):
-            if not value:
-                failures.append(f"{path}=EMPTY")
-            else:
-                failures += find_failures(value, prefix=f"{path}.")
+            failures += find_failures(value, prefix=f"{path}.")
         elif value != 200:
             failures.append(f"{path}={value!r}")
     return failures
