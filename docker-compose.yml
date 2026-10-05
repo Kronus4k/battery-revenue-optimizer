@@ -1,0 +1,130 @@
+# =============================================================================
+# Battery Revenue Optimizer - local Airflow (Day 2, step 2.1)
+#
+# What this runs:
+#   postgres           -> Airflow's METADATA database (DAG runs, task states,
+#                          retries). NOT our serving DB; that comes on Day 4.
+#   airflow-init       -> one-shot job: migrates the metadata DB, creates the
+#                          admin login, then exits. Everything else waits for it.
+#   airflow-apiserver  -> the UI + REST API on http://localhost:8080
+#   airflow-scheduler  -> decides WHICH task runs WHEN, and runs it
+#                          (LocalExecutor = tasks run as subprocesses here)
+#   airflow-dag-processor -> parses files in ./dags into DAG objects
+#
+# Why LocalExecutor (not Celery like the official compose file)?
+#   Celery needs Redis + worker containers: more RAM, more moving parts.
+#   One laptop, a few tasks per day -> LocalExecutor is enough.
+#   Interview line: "I chose the smallest executor that fits the workload."
+# =============================================================================
+
+# ---- Shared settings, reused by every Airflow service via YAML anchors ------
+x-airflow-common: &airflow-common
+  # Pinned version = reproducible builds. Override in .env if needed.
+  image: ${AIRFLOW_IMAGE:-apache/airflow:3.0.6}
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    # Metadata DB connection: user:password@host:port/db
+    # "postgres" is the service name below; Docker's network resolves it.
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    # Encrypts secrets stored in Airflow Connections. Comes from .env.
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+    # Airflow 3: tasks talk to the scheduler through the API server.
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    # Airflow 3: all components must share the same token-signing secret.
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
+    # Classic username/password login (FAB auth manager).
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    # New DAGs start PAUSED: nothing fires (e.g. a 90-day catch-up) by accident.
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    # No example DAGs cluttering the UI.
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    # Display times in our market's local time (storage stays UTC).
+    AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Stockholm
+    AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: Europe/Stockholm
+    # AWS credentials for invoking the Lambda (invoke-only user, see Note 2.4).
+    # Values come from .env; boto3 reads these three names automatically.
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-eu-north-1}
+  volumes:
+    # Left = folder on your laptop, right = path inside the container.
+    # Edit a DAG in VS Code -> Airflow sees it within ~30 s. No rebuild.
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./config:/opt/airflow/config
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on: &airflow-depends
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow   # local-only metadata DB, never exposed
+      POSTGRES_DB: airflow
+    volumes:
+      # Named volume: run history survives "docker compose down".
+      # "docker compose down -v" wipes it (a break-it experiment later).
+      - airflow-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/plugins /opt/airflow/config
+        exec /entrypoint airflow version
+    environment:
+      <<: *airflow-env
+      _AIRFLOW_DB_MIGRATE: "true"          # create/upgrade metadata tables
+      _AIRFLOW_WWW_USER_CREATE: "true"     # create the UI login
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-admin}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
+    user: "0:0"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-depends
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow-db:

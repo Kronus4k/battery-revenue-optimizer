@@ -1,0 +1,30 @@
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Python ----
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ---- Build artefacts (regenerated on deploy) ----
+build/
+*.zip
+
+# ---- Data and runtime output (data lives in S3, not git) ----
+data/
+logs/
+
+# ---- Airflow local folders (created by Docker) ----
+config/
+plugins/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
