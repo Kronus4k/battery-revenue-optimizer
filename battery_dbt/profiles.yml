@@ -1,0 +1,14 @@
+# dbt connection profile. Contains NO secrets: credentials are read from
+# environment variables (loaded from .env), so this file is safe to commit.
+battery_dbt:                 # must match "profile:" in dbt_project.yml
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: 127.0.0.1        # the Docker warehouse, localhost only
+      port: 5433             # NOT 5432: that is the Windows PostgreSQL (Note 3.2)
+      user: "{{ env_var('WAREHOUSE_USER') }}"
+      password: "{{ env_var('WAREHOUSE_PASSWORD') }}"
+      dbname: "{{ env_var('WAREHOUSE_DB') }}"
+      schema: analytics      # default schema; staging/marts get their own later
+      threads: 4

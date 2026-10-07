@@ -1,0 +1,3 @@
+# dbt for transformations (separate venv: .venv-dbt). Verified on Python 3.14, 2026-10-07.
+dbt-core==1.12.5
+dbt-postgres==1.11.0

@@ -28,3 +28,6 @@ plugins/
 .idea/
 Thumbs.db
 desktop.ini
+
+
+.venv-dbt/
