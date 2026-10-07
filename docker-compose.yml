@@ -1,9 +1,12 @@
 # =============================================================================
-# Battery Revenue Optimizer - local Airflow (Day 2, step 2.1)
+# Battery Revenue Optimizer - local Airflow (Day 2, step 2.1) + warehouse (Day 3)
 #
 # What this runs:
 #   postgres           -> Airflow's METADATA database (DAG runs, task states,
-#                          retries). NOT our serving DB; that comes on Day 4.
+#                          retries). NOT our data; see "warehouse" below.
+#   warehouse          -> OUR data warehouse (Day 3): dbt builds staging and
+#                          marts here, Flask reads from here (Day 4).
+#                          Separate server, user and volume from "postgres".
 #   airflow-init       -> one-shot job: migrates the metadata DB, creates the
 #                          admin login, then exits. Everything else waits for it.
 #   airflow-apiserver  -> the UI + REST API on http://localhost:8080
@@ -75,6 +78,34 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # ---- Day 3: our data warehouse ---------------------------------------------
+  # dbt builds staging/marts here; Flask reads from here (Day 4).
+  # Deliberately separate from Airflow's metadata DB ("postgres" above), so an
+  # Airflow upgrade or reset can never touch our data.
+  warehouse:
+    image: postgres:16                  # pinned major version, same as Airflow's DB
+    environment:
+      # Values come from .env (never committed). ":?" makes compose stop with
+      # this message if the variable is missing, instead of starting silently.
+      POSTGRES_USER: ${WAREHOUSE_USER:?set WAREHOUSE_USER in .env}
+      POSTGRES_PASSWORD: ${WAREHOUSE_PASSWORD:?set WAREHOUSE_PASSWORD in .env}
+      POSTGRES_DB: ${WAREHOUSE_DB:-battery}
+    ports:
+      # host 127.0.0.1:5433 -> container 5432
+      # 5433 because the Windows PostgreSQL service already uses 5432;
+      # 127.0.0.1 so only this PC can connect, not the whole network.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      # Named volume: warehouse data survives container restarts/re-creation.
+      - warehouse-db:/var/lib/postgresql/data
+    healthcheck:
+      # "$$" passes a literal "$" so the variables are read inside the container.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped             # same policy as the other services
+
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
@@ -128,3 +159,4 @@ services:
 
 volumes:
   airflow-db:
+  warehouse-db:
