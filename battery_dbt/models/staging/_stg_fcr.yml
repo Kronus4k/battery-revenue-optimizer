@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: stg_fcr
+    description: "FCR-N / FCR-D up / FCR-D down from Mimer CSV: hourly price and volume per product and zone (SE1-SE4)."
+    columns:
+      - name: bidding_zone
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SE1', 'SE2', 'SE3', 'SE4']   # DK2 must never leak in
+      - name: product
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['fcr_n', 'fcr_d_up', 'fcr_d_down']
+      - name: ts_utc
+        data_tests:
+          - not_null
+      - name: price_eur_mw_h
+        data_tests:
+          - not_null
+      - name: volume_mw
+        data_tests:
+          - not_null
