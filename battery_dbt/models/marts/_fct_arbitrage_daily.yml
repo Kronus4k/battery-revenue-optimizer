@@ -1,0 +1,32 @@
+version: 2
+
+unit_tests:
+  - name: arbitrage_picks_cheapest_block_then_dearest_later_block
+    description: >
+      Logic test with a tiny 0.5 MWh battery (2-quarter blocks) on 6 quarters.
+      Prices 50,10,10,50,200,200: charge the 10+10 block, discharge the 200+200
+      block. cost = 20 * 0.25 = 5; revenue = 400 * 0.25 * 0.85 = 85; profit = 80.
+      A flat day (SE1) must idle: no cycle, profit 0.
+    model: fct_arbitrage_daily
+    overrides:
+      vars:
+        battery_power_mw: 1
+        battery_energy_mwh: 0.5
+        round_trip_efficiency: 0.85
+    given:
+      - input: ref('stg_elpris')
+        rows:
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:00:00+00", ts_local: "2026-09-15 00:00:00", price_eur_mwh: 50}
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:15:00+00", ts_local: "2026-09-15 00:15:00", price_eur_mwh: 10}
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:30:00+00", ts_local: "2026-09-15 00:30:00", price_eur_mwh: 10}
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:45:00+00", ts_local: "2026-09-15 00:45:00", price_eur_mwh: 50}
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 23:00:00+00", ts_local: "2026-09-15 01:00:00", price_eur_mwh: 200}
+          - {bidding_zone: SE3, delivery_date: 2026-09-15, ts_utc: "2026-09-14 23:15:00+00", ts_local: "2026-09-15 01:15:00", price_eur_mwh: 200}
+          - {bidding_zone: SE1, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:00:00+00", ts_local: "2026-09-15 00:00:00", price_eur_mwh: 50}
+          - {bidding_zone: SE1, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:15:00+00", ts_local: "2026-09-15 00:15:00", price_eur_mwh: 50}
+          - {bidding_zone: SE1, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:30:00+00", ts_local: "2026-09-15 00:30:00", price_eur_mwh: 50}
+          - {bidding_zone: SE1, delivery_date: 2026-09-15, ts_utc: "2026-09-14 22:45:00+00", ts_local: "2026-09-15 00:45:00", price_eur_mwh: 50}
+    expect:
+      rows:
+        - {bidding_zone: SE1, delivery_date: 2026-09-15, cycled: false, charge_start_local: null, discharge_start_local: null, charge_cost_eur: "0.00", discharge_revenue_eur: "0.00", arbitrage_profit_eur: "0.00"}
+        - {bidding_zone: SE3, delivery_date: 2026-09-15, cycled: true, charge_start_local: "2026-09-15 00:15:00", discharge_start_local: "2026-09-15 01:00:00", charge_cost_eur: "5.00", discharge_revenue_eur: "85.00", arbitrage_profit_eur: "80.00"}

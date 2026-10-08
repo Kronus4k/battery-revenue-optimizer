@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: fct_reserve_daily
+    description: "Strategy A reserve leg: revenue per zone, day and product (capacity payment only, 1 MW all day)."
+    columns:
+      - name: reserve_revenue_eur
+        data_tests: [not_null]
+
+  - name: mart_strategy_daily
+    description: >
+      Strategy A result: revenue of each single-strategy choice per zone and day, and the winner.
+      Perfect foresight; reserve side excludes activation energy and SoC rules. Not expected revenue.
+    columns:
+      - name: strategy
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['arbitrage', 'fcr_n', 'fcr_d_up', 'fcr_d_down', 'mfrr_up', 'mfrr_down']
+      - name: revenue_eur
+        data_tests: [not_null]

@@ -40,3 +40,10 @@ models:
     marts:              # backtest results Flask will read
       +schema: marts
       +materialized: table
+
+
+# Battery and backtest assumptions (README "Simplifications"; Note 3.1).
+vars:
+  battery_power_mw: 1             # max charge/discharge power
+  battery_energy_mwh: 2           # storage capacity -> 2 h at full power
+  round_trip_efficiency: 0.85     # NREL ATB representative value; EIA fleet avg ~0.82
