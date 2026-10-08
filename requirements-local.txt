@@ -1,4 +1,4 @@
-# Local/Airflow scripts (load_raw.py, verify_backfill.py). NOT the Lambda bundle.
-# Install: python -m pip install -r requirements-local.txt
-boto3==1.43.103
+# Extra deps for local/Airflow scripts (load_raw.py), on top of requirements.txt
+# (which already pins boto3). Install both:
+#   python -m pip install -r requirements.txt -r requirements-local.txt
 psycopg2-binary==2.9.13
