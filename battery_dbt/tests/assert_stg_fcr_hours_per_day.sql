@@ -1,0 +1,13 @@
+-- Fails for any product/zone/day whose row count differs from the real
+-- number of hours in that local day: 24 normally, 23 / 25 on DST days.
+with per_day as (
+    select product, bidding_zone, delivery_date, count(*) as n
+    from {{ ref('stg_fcr') }}
+    group by product, bidding_zone, delivery_date
+)
+select *
+from per_day
+where n <> (extract(epoch from
+        ((delivery_date + 1)::timestamp at time zone 'Europe/Stockholm')
+      - (delivery_date::timestamp     at time zone 'Europe/Stockholm')
+    ) / 3600)::int
