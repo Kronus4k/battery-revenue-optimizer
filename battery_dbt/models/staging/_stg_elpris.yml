@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: stg_elpris
+    description: "Spot prices per bidding zone, one row per 15-minute interval (from elprisetjustnu.se)."
+    columns:
+      - name: bidding_zone
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SE1', 'SE2', 'SE3', 'SE4']
+      - name: ts_utc
+        description: "Interval start as an exact instant (UTC key)."
+        data_tests:
+          - not_null
+      - name: interval_minutes
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [15]
+                quote: false        # integers, not strings
+      - name: price_eur_mwh
+        description: "Can be negative (surplus power) - no positivity test on purpose."
+        data_tests:
+          - not_null

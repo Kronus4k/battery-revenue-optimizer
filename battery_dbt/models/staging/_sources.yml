@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw                      # referenced as source('raw', 'landing_files')
+    schema: raw                    # the Postgres schema created by sql/001_create_landing.sql
+    description: "Raw files loaded byte-for-byte from the S3 raw zone by load_raw.py."
+    tables:
+      - name: landing_files
+        description: "One row per raw data file. content = original bytes (bytea); all parsing happens in staging."
+        columns:
+          - name: source
+            description: "elpris | svk_fcr | svk_mfrr"
+          - name: zone
+            description: "SE1..SE4, or ALL for sources that cover every zone"
+          - name: delivery_date
+            description: "Local (Europe/Stockholm) delivery date from the S3 partition"
+          - name: content
+            description: "File bytes exactly as stored in S3 (BOM included)"
+          - name: meta
+            description: "_meta.json written at ingestion (sha256, fetched_at_utc, ...)"
