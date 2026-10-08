@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: int_spot_hourly
+    description: "Hourly average spot price per zone (for strategy B only)."
+    columns:
+      - name: ts_utc
+        data_tests: [not_null]
+      - name: price_eur_mwh
+        data_tests: [not_null]
+      - name: n_quarters
+        description: "An hourly average from fewer than 4 quarters would be biased."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [4]
+                quote: false
+
+  - name: int_reserve_prices_hourly
+    description: "All reserve products (FCR-N, FCR-D up/down, mFRR up/down) in one long table, EUR/MW/h."
+    columns:
+      - name: ts_utc
+        data_tests: [not_null]
+      - name: price_eur_mw_h
+        data_tests: [not_null]
+      - name: product
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['fcr_n', 'fcr_d_up', 'fcr_d_down', 'mfrr_up', 'mfrr_down']
