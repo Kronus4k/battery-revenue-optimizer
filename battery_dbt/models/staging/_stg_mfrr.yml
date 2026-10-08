@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: stg_mfrr
+    description: "mFRR capacity market (SVK Data Service): hourly price and volume per zone and direction."
+    columns:
+      - name: bidding_zone
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SE1', 'SE2', 'SE3', 'SE4']
+      - name: direction
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['up', 'down']
+      - name: ts_utc
+        data_tests:
+          - not_null
+      - name: price_unit
+        description: "Guards the unit assumption: price is EUR per MW per hour."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['EUR-MW']
+      - name: reserve_product
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['mFRRCapacityMarket']
+      - name: price_eur_mw_h
+        data_tests:
+          - not_null
