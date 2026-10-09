@@ -22,8 +22,12 @@
 
 # ---- Shared settings, reused by every Airflow service via YAML anchors ------
 x-airflow-common: &airflow-common
-  # Pinned version = reproducible builds. Override in .env if needed.
-  image: ${AIRFLOW_IMAGE:-apache/airflow:3.0.6}
+  # Day 4: our own image = official Airflow 3.0.6 + dbt venv (Dockerfile, D4.1).
+  # NEW name on purpose: with build + image, compose saves the built image
+  # under this name; reusing "apache/airflow:3.0.6" would overwrite the
+  # official image locally.
+  build: .
+  image: battery-airflow:3.0.6-dbt1.12.5
   environment: &airflow-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     # Metadata DB connection: user:password@host:port/db
@@ -49,6 +53,19 @@ x-airflow-common: &airflow-common
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
     AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
     AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-eu-north-1}
+    # Day 4: warehouse access for the load_raw and dbt tasks.
+    # Inside Docker the warehouse is service name + container port,
+    # NOT 127.0.0.1:5433 (that port exists only on the Windows side).
+    WAREHOUSE_HOST: warehouse
+    WAREHOUSE_PORT: "5432"
+    WAREHOUSE_USER: ${WAREHOUSE_USER}
+    WAREHOUSE_PASSWORD: ${WAREHOUSE_PASSWORD}
+    WAREHOUSE_DB: ${WAREHOUSE_DB:-battery}
+    # dbt reads the profile from the mounted project, but writes ALL output
+    # to /tmp, so the project can be mounted read-only (tested on dbt 1.12.5).
+    DBT_PROFILES_DIR: /opt/airflow/battery_dbt
+    DBT_TARGET_PATH: /tmp/dbt/target
+    DBT_LOG_PATH: /tmp/dbt/logs
   volumes:
     # Left = folder on your laptop, right = path inside the container.
     # Edit a DAG in VS Code -> Airflow sees it within ~30 s. No rebuild.
@@ -56,6 +73,9 @@ x-airflow-common: &airflow-common
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./config:/opt/airflow/config
+    # Day 4: code for the load/transform tasks, mounted READ-ONLY (:ro).
+    - ./battery_dbt:/opt/airflow/battery_dbt:ro
+    - ./load_raw.py:/opt/airflow/scripts/load_raw.py:ro
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-depends
     postgres:
