@@ -107,3 +107,25 @@ def invoke_and_check(delivery_date, sources):
     if problems:
         raise IngestionFailed(f"{delivery_date}: {problems}")
     return {"date": delivery_date, "sources": sources}
+
+
+
+
+def load_window(today, lookback_days=3, lookahead_days=1):
+    """
+    Rolling window of delivery dates to (re)load into the warehouse (Day 4).
+
+    today: a datetime.date in MARKET time (Stockholm), not UTC.
+    Returns (start, end) as 'YYYY-MM-DD' strings, both inclusive.
+
+    Why a window, not just one day?
+      - lookback: a late file or a re-fetch of the last few days is picked up
+        automatically. Safe because load_raw upserts (unchanged files = no-op).
+      - lookahead: elpris publishes TOMORROW's prices at 13:30, so tomorrow
+        must be inside the window too.
+    """
+    if lookback_days < 0 or lookahead_days < 0:
+        raise ValueError("lookback_days and lookahead_days must be >= 0")
+    start = today - timedelta(days=lookback_days)
+    end = today + timedelta(days=lookahead_days)
+    return start.isoformat(), end.isoformat()

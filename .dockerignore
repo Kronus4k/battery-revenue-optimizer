@@ -1,0 +1,13 @@
+# Files NOT sent to Docker during "docker build" (the build context).
+# Secrets never belong in a build context, even if nothing COPYs them.
+.env
+.env.*
+# Windows venvs: useless in a Linux image and large.
+.venv
+.venv-dbt
+# Repo history, runtime output, caches.
+.git
+logs
+battery_dbt/target
+battery_dbt/logs
+**/__pycache__

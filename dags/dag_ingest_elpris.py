@@ -5,13 +5,18 @@ ingest_elpris: tomorrow's day-ahead spot prices, every day at 13:30 Stockholm.
 Nord Pool publishes day-ahead prices ~13:00. elprisetjustnu.se mirrors them
 shortly after, so at 13:30 we fetch delivery date = TOMORROW (offset +1).
 If they're late, the source returns an error -> task fails -> retries every
-15 min until ~15:00. A freshness alert at 14:00 comes on Day 3.
+15 min until ~15:00. A freshness alert at 14:00 comes on Day 4 (step 3).
+
+Day 4 (D4.2): the fetch task now declares RAW_ELPRIS as an outlet. When it
+SUCCEEDS, Airflow records an asset event and the transform DAG runs.
+If all retries fail, no event -> transform does not run on missing data.
 """
 from datetime import timedelta
 
 import pendulum
 from airflow.sdk import dag, task
 
+from battery_assets import RAW_ELPRIS
 from battery_common import delivery_date_for, invoke_and_check
 
 
@@ -28,7 +33,8 @@ from battery_common import delivery_date_for, invoke_and_check
 )
 def ingest_elpris():
 
-    @task
+    # outlets: "this task produces RAW_ELPRIS". Event only on success.
+    @task(outlets=[RAW_ELPRIS])
     def fetch_tomorrow(**context):
         d = delivery_date_for(context["logical_date"], offset_days=+1)
         return invoke_and_check(d, ["elpris"])
