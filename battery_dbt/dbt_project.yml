@@ -40,6 +40,11 @@ models:
     marts:              # backtest results Flask will read
       +schema: marts
       +materialized: table
+      # Day 4 (D4.4): read-only API login. dbt drops/recreates these tables on
+      # every build (losing manual grants), and re-applies this after each build.
+      # Only marts: staging/intermediate stay closed to api_reader.
+      +grants:
+        select: ['api_reader']
 
 
 # Battery and backtest assumptions (README "Simplifications"; Note 3.1).
