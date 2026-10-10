@@ -127,6 +127,35 @@ services:
       start_period: 5s
     restart: unless-stopped             # same policy as the other services
 
+  # ---- Day 4: read-only results API (D4.4) ------------------------------------
+  # Own small image (Dockerfile.api); code baked in, NOT mounted: a deployable
+  # artifact. Reads analytics_marts only, as read-only role api_reader.
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: battery-api:0.1.0
+    environment:
+      API_DB_HOST: warehouse            # Docker network name, not 127.0.0.1
+      API_DB_PORT: "5432"               # container port, not 5433
+      API_DB_NAME: ${WAREHOUSE_DB:-battery}
+      API_DB_USER: api_reader
+      API_DB_PASSWORD: ${API_READER_PASSWORD:?set API_READER_PASSWORD in .env}
+    ports:
+      # gunicorn listens on 0.0.0.0:8000 INSIDE the container; the host
+      # publishes it on 127.0.0.1 only, so only this PC can reach it.
+      - "127.0.0.1:5000:8000"
+    depends_on:
+      warehouse:
+        condition: service_healthy
+    healthcheck:
+      # slim image has no curl: use Python. urlopen raises on 503 -> unhealthy.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
