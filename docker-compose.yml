@@ -76,6 +76,7 @@ x-airflow-common: &airflow-common
     # Day 4: code for the load/transform tasks, mounted READ-ONLY (:ro).
     - ./battery_dbt:/opt/airflow/battery_dbt:ro
     - ./load_raw.py:/opt/airflow/scripts/load_raw.py:ro
+    - ./verify_backfill.py:/opt/airflow/scripts/verify_backfill.py:ro
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-depends
     postgres:
