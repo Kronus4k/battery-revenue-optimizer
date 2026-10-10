@@ -129,3 +129,32 @@ def load_window(today, lookback_days=3, lookahead_days=1):
     start = today - timedelta(days=lookback_days)
     end = today + timedelta(days=lookahead_days)
     return start.isoformat(), end.isoformat()
+
+
+
+def freshness_problems(gaps, today):
+    """
+    Filter lake gaps down to the ones that are REAL problems at check time
+    (Day 4, D4.3; the monitor runs at 15:30 Stockholm, after the last retries).
+
+    gaps:  output of verify_backfill.find_gaps(keys, start, end), i.e.
+           {'YYYY-MM-DD': ['svk_fcr/ALL', 'elpris/SE3', ...]}
+    today: datetime.date in MARKET time (Stockholm).
+
+    Publication rules (memory hook: elpris = tomorrow, SvK = yesterday):
+      - SvK for day D is published on D+1, so SvK for TODAY or later is
+        not due yet -> expected missing, dropped.
+      - elpris for TOMORROW is fetched at 13:30 (retries until ~15:00),
+        so at 15:30 it IS due -> kept if missing.
+      - Everything before today must be complete (all 6 sources/zones).
+    Returns the same shape as gaps, only with entries that should exist.
+    """
+    # ISO dates ('YYYY-MM-DD') sort correctly as strings, so no parsing needed.
+    today_iso = today.isoformat()
+    problems = {}
+    for day, missing in gaps.items():
+        real = [m for m in missing
+               if not (m.startswith("svk_") and day >= today_iso)]
+        if real:
+            problems[day] = real
+    return problems

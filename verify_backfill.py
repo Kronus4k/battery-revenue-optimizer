@@ -7,9 +7,11 @@ side independently: for every delivery date in the range, does each expected
 source/zone folder contain a _meta.json? (_meta.json is only written together
 with the data file, Option C from Day 1, so its presence = data landed.)
 
-Runs on YOUR laptop with YOUR human credentials (S3Account profile in
-C:\\Users\\umars\\.aws\\credentials), NOT the Airflow key: that key can't list
-S3, by design (Note 2.6).
+Runs on your laptop (any identity that can list raw/*) and, since Day 4, inside
+Airflow: the monitor_freshness DAG imports find_gaps/list_raw_keys and runs
+with the airflow-local-invoker key. That key CAN list raw/* since Day 3
+(read-raw-zone policy: s3:ListBucket with prefix raw/*, s3:GetObject on raw/*).
+Day 2 text said it couldn't; that was true before read-raw-zone was added.
 
 Usage (cmd, venv active):
     python verify_backfill.py 2026-07-01 2026-09-28
