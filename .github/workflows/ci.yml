@@ -83,3 +83,15 @@ jobs:
       - name: dbt build (SQL runs and contracts hold; empty data)
         working-directory: battery_dbt
         run: dbt build
+
+      - name: dbt docs (static site; catalog from the empty CI database)
+        working-directory: battery_dbt
+        run: dbt docs generate --static
+
+      - name: Upload dbt docs as a build artifact
+        # Pinned to an exact release older than 2 weeks (v7.0.2 is days old).
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: dbt-docs
+          path: battery_dbt/target/static_index.html
+          retention-days: 14
