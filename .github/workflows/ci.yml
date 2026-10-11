@@ -26,3 +26,60 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -v
+
+  # ---------------------------------------------------------------------------
+  # Day 4 (D4.5): dbt against a THROWAWAY Postgres with an EMPTY landing table.
+  # What it proves: the SQL runs, refs/configs resolve, grants apply, the unit
+  # test (own fixture data) passes. What it does NOT prove: data quality;
+  # data tests on empty tables mostly pass trivially. Real-data tests run daily
+  # in Airflow (transform). Fixture-based regression tests = Phase 2.
+  # Separate job: a broken model and a broken Python function show up as two
+  # different red checks.
+  # ---------------------------------------------------------------------------
+  dbt:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16              # same major version as the warehouse
+        env:
+          POSTGRES_USER: battery
+          POSTGRES_PASSWORD: ci-only-not-a-secret   # throwaway DB, dies with the job
+          POSTGRES_DB: battery
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U battery -d battery"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Same variable names as the laptop/Airflow profile (env_var in profiles.yml).
+      WAREHOUSE_HOST: localhost
+      WAREHOUSE_PORT: "5432"
+      WAREHOUSE_USER: battery
+      WAREHOUSE_PASSWORD: ci-only-not-a-secret
+      WAREHOUSE_DB: battery
+      DBT_PROFILES_DIR: ${{ github.workspace }}/battery_dbt
+      PGPASSWORD: ci-only-not-a-secret
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt (same pins as laptop and Airflow image)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dbt.txt
+
+      - name: Create landing table and api_reader role (fresh-setup order)
+        # ON_ERROR_STOP=1: without it psql reports errors but still exits 0,
+        # and CI would go green on a failed setup.
+        run: |
+          psql -h localhost -U battery -d battery -v ON_ERROR_STOP=1 -f sql/001_create_landing.sql
+          psql -h localhost -U battery -d battery -v ON_ERROR_STOP=1 -v api_password=ci-only-not-a-secret -f sql/002_create_api_reader.sql
+
+      - name: dbt build (SQL runs and contracts hold; empty data)
+        working-directory: battery_dbt
+        run: dbt build

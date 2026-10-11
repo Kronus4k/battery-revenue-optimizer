@@ -20,4 +20,6 @@
 create role api_reader login password :'api_password';
 
 grant connect on database battery to api_reader;
+-- Fresh setup (CI, new machine): dbt has not created the schema yet. Idempotent.
+create schema if not exists analytics_marts;
 grant usage on schema analytics_marts to api_reader;
