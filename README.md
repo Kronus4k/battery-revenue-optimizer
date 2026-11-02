@@ -28,7 +28,7 @@ This is a **retrospective backtest with perfect foresight**, not a forecast. Eve
 3. **Load.** `load_raw.py` copies raw files into `raw.landing_files` in Postgres as bytes, with an idempotent upsert, and verifies each sha256 after landing.
 4. **Transform.** dbt parses the raw bytes in staging views, aligns spot and reserve prices to hourly grain in intermediate views, and computes daily revenue per strategy in mart tables.
 5. **Serve.** A Flask API returns the best strategy, its revenue and the gap to the ceiling for a zone and date. dbt docs show lineage from every mart column back to the raw landing table.
-6. **Check.** dbt tests run on every build. `verify_backfill.py` lists missing days in the lake. A freshness alert fires at 14:00 if today's data has not arrived.
+6. **Check.** dbt tests run on every build. `verify_backfill.py` lists missing days in the lake. A freshness alert fires at 15:30 if today's data has not arrived.
 
 ## Tech stack
 
@@ -83,7 +83,7 @@ Neither is "expected revenue".
 | --- | --- | --- |
 | sha256 after landing | Loader | Corrupted or partial copies between S3 and Postgres |
 | Lake gap check (`verify_backfill.py`) | S3 | Days a source never delivered or a run never wrote |
-| Freshness alert at 14:00 | Airflow | Today's data has not arrived |
+| Freshness alert at 15:30 | Airflow | Today's data has not arrived |
 | 46 dbt tests | Staging, intermediate, marts | Duplicate keys, nulls, unexpected products and zones, truncated API responses, wrong row counts per day |
 | dbt unit test | Marts | Arbitrage logic against a hand-calculated day |
 
