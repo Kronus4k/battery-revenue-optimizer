@@ -120,7 +120,7 @@
 <text x="120" y="607" font-size="12" font-weight="400" fill="#5B6B7C" text-anchor="middle">schedules and checks</text>
 <path d="M120 624 V700 H1045 V560" fill="none" stroke="#5B6B7C" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
 <path d="M340 700 V574" fill="none" stroke="#5B6B7C" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
-<text x="690" y="692" font-size="12.5" font-weight="400" fill="#5B6B7C" text-anchor="middle">Ingest at 13:30 (spot) and 10:00 (SvK), then load_raw and dbt build; freshness alert at 14:00</text>
+<text x="690" y="692" font-size="12.5" font-weight="400" fill="#5B6B7C" text-anchor="middle">Ingest at 13:30 (spot) and 10:00 (SvK), then load_raw and dbt build; freshness alert at 15:30</text>
 <path d="M40 760 H72" fill="none" stroke="#5B6B7C" stroke-width="1.6" marker-end="url(#arrow)"/>
 <text x="80" y="764" font-size="12" font-weight="400" fill="#5B6B7C" text-anchor="start">Data flow</text>
 <path d="M170 760 H202" fill="none" stroke="#5B6B7C" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrow)"/>

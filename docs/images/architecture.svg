@@ -227,7 +227,7 @@
     <text x="401" y="678" class="m">dbt data tests and a unit test, red-tested</text>
     <text x="401" y="696" class="m">sha256 check on every landed file</text>
     <text x="401" y="714" class="m">verify_backfill.py finds gaps in the lake</text>
-    <text x="401" y="734" class="m">Freshness alert at 14:00 if data is late</text>
+    <text x="401" y="734" class="m">Freshness alert at 15:30 if data is late</text>
 
     <rect x="734" y="628" width="319" height="122" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
     <rect x="734" y="628" width="319" height="30" rx="6" fill="#14304F"/><rect x="734" y="648" width="319" height="10" fill="#14304F"/>
