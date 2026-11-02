@@ -1,0 +1,257 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 820" width="1440" height="820" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTphYjc5MTViMy03ZWNhLTQwMjMtOTc1Zi1hYzhkMTUyZmIwZGYAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaMWGGt+269mJhU68U756eD0AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpmZTIwMzEwNi1lY2VjLTQyY2QtODVlZi00M2M5ZmQ0NDI0YThscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoAVLBymMNG+cd/L05VXm7+AAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggct4FevRF6IvIE/R1A/scCauYSnbr2XAiPzjxvHRdAiKkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaPlKPXNKM7WA2kwXjfcpdcoAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCBzz8Uh65kCtCLZmrVi42+OmmBakKhGP5Com8utxR1aIWRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjWZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmFiNzkxNWIzLTdlY2EtNDAyMy05NzVmLWFjOGQxNTJmYjBkZi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmU0NmNiM2UxLTRlYjAtNDY5MC04OTQ5LTUyZWYzMWU2OWNiMHJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCBy3gV69EXoi8gT9HUD+xwJq5hKduvZcCI/OPG8dF0CIqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFgg0jpra2aQJvFZUBFk69ciJZ3tSpespOPE/j11SpIN6OOiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggwuaOZq0xTul/eQEMwx4er52TNg/7gN5Iw3DZHTSZjhl0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQJXnNycCbVATAhhVG57ac4i9C9IRvwe2m45DmWpMZYw3RfuH2v0pOSM6xFUPuHh87qhTBsBIf2I5+fIR6VXNuOI=</c2pa:manifest></metadata>
+  <title>Battery Revenue Optimizer architecture</title>
+  <!-- Battery Revenue Optimizer: architecture diagram, v1.0.
+       Edit in any text editor. Solid = built, dotted grey = planned / Phase 2.
+       White background rect keeps it readable in GitHub dark mode. -->
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5B6475"/>
+    </marker>
+    <style>
+      .t  { font-size: 28px; font-weight: 700; fill: #14304F; }
+      .st { font-size: 13px; fill: #5B6475; }
+      .h  { font-size: 14px; font-weight: 700; fill: #14304F; }
+      .n  { font-size: 12px; font-weight: 700; fill: #FFFFFF; }
+      .b  { font-size: 14px; font-weight: 700; fill: #14304F; }
+      .m  { font-size: 12px; fill: #33415C; }
+      .s  { font-size: 11px; fill: #6B7486; }
+      .wb { font-size: 15px; font-weight: 700; fill: #FFFFFF; }
+      .w  { font-size: 12px; fill: #DCE8F5; }
+      .code { font-family: Consolas, Menlo, monospace; font-size: 11px; fill: #14304F; }
+      .codew { font-family: Consolas, Menlo, monospace; font-size: 11.5px; fill: #FFFFFF; }
+      .lay { font-size: 11px; font-weight: 700; fill: #14304F; }
+      .lc  { font-family: Consolas, Menlo, monospace; font-size: 10px; fill: #33415C; }
+      .lbl { font-size: 10.5px; fill: #5B6475; }
+      .plan { font-size: 11px; font-style: italic; fill: #8A5A00; }
+      .line { stroke: #5B6475; stroke-width: 1.4; fill: none; }
+      .dash { stroke-dasharray: 6 4; }
+      .dot  { stroke-dasharray: 2 4; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="820" fill="#FFFFFF"/><rect width="1440" height="8" fill="#14304F"/>
+
+  <!-- Title -->
+  <text x="40" y="52" class="t">Battery Revenue Optimizer: architecture</text>
+  <text x="40" y="78" class="st">Retrospective backtest for a 1 MW / 2 MWh battery in SE1–SE4: spot arbitrage vs frequency reserves (FCR-N, FCR-D, mFRR)</text>
+
+  <!-- Column headers (the data flows left to right, so the numbers are a real sequence) -->
+  <g>
+    <circle cx="52" cy="112" r="11" fill="#14304F"/><text x="52" y="116" text-anchor="middle" class="n">1</text>
+    <text x="70" y="117" class="h">Sources</text>
+    <line x1="40" y1="132" x2="260" y2="132" stroke="#9EC3E6" stroke-width="2"/>
+
+    <circle cx="322" cy="112" r="11" fill="#14304F"/><text x="322" y="116" text-anchor="middle" class="n">2</text>
+    <text x="340" y="117" class="h">Ingest and orchestrate</text>
+    <line x1="310" y1="132" x2="530" y2="132" stroke="#9EC3E6" stroke-width="2"/>
+
+    <circle cx="592" cy="112" r="11" fill="#14304F"/><text x="592" y="116" text-anchor="middle" class="n">3</text>
+    <text x="610" y="117" class="h">Data lake (raw)</text>
+    <line x1="580" y1="132" x2="790" y2="132" stroke="#9EC3E6" stroke-width="2"/>
+
+    <circle cx="852" cy="112" r="11" fill="#14304F"/><text x="852" y="116" text-anchor="middle" class="n">4</text>
+    <text x="870" y="117" class="h">Warehouse and transform</text>
+    <line x1="840" y1="132" x2="1135" y2="132" stroke="#9EC3E6" stroke-width="2"/>
+
+    <circle cx="1182" cy="112" r="11" fill="#14304F"/><text x="1182" y="116" text-anchor="middle" class="n">5</text>
+    <text x="1200" y="117" class="h">Serve</text>
+    <line x1="1170" y1="132" x2="1400" y2="132" stroke="#9EC3E6" stroke-width="2"/>
+  </g>
+
+  <!-- 1 Sources -->
+  <g>
+    <rect x="40" y="150" width="220" height="78" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="40" y="150" width="6" height="78" fill="#14304F"/>
+    <text x="58" y="174" class="b">elprisetjustnu.se</text>
+    <text x="58" y="194" class="m">Spot prices SE1–SE4</text>
+    <text x="58" y="212" class="s">JSON, 15-min, published D+1</text>
+
+    <rect x="40" y="243" width="220" height="78" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="40" y="243" width="6" height="78" fill="#14304F"/>
+    <text x="58" y="267" class="b">Svenska kraftnät Mimer</text>
+    <text x="58" y="287" class="m">FCR-N, FCR-D up/down</text>
+    <text x="58" y="305" class="s">CSV, hourly, published D-1</text>
+
+    <rect x="40" y="336" width="220" height="78" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="40" y="336" width="6" height="78" fill="#14304F"/>
+    <text x="58" y="360" class="b">SVK Data Service</text>
+    <text x="58" y="380" class="m">mFRR capacity, per zone</text>
+    <text x="58" y="398" class="s">JSON API, hourly, published D-1</text>
+
+    <rect x="40" y="429" width="220" height="78" rx="6" fill="#FFFFFF" stroke="#9AA3B2" stroke-dasharray="2 4"/>
+    <rect x="40" y="429" width="6" height="78" fill="#9AA3B2"/>
+    <text x="58" y="453" class="b" fill="#6B7486" style="fill:#6B7486">SMHI open API</text>
+    <text x="58" y="473" class="m">Weather</text>
+    <text x="58" y="491" class="plan">planned</text>
+  </g>
+
+  <!-- Sources -> Lambda (HTTPS pull) -->
+  <path class="line" d="M260,189 H285"/>
+  <path class="line" d="M260,282 H285"/>
+  <path class="line" d="M260,375 H285"/>
+  <path class="line dot" d="M260,468 H285 V405"/>
+  <path class="line" d="M285,189 V405 H308" marker-end="url(#arr)"/>
+
+  <!-- 2 Airflow + Lambda -->
+  <g>
+    <rect x="310" y="150" width="220" height="150" rx="8" fill="#14304F"/>
+    <text x="326" y="178" class="wb">Apache Airflow</text>
+    <text x="326" y="198" class="w">Orchestration, local Docker</text>
+    <text x="326" y="230" class="codew">ingest_elpris  13:30</text>
+    <text x="326" y="250" class="codew">ingest_svk     10:00</text>
+    <text x="326" y="270" class="codew">ingest_daily   backfill</text>
+
+    <path class="line" d="M420,300 V343" marker-end="url(#arr)"/>
+    <text x="428" y="318" class="lbl">invoke</text>
+    <text x="428" y="332" class="lbl">(own IAM user)</text>
+
+    <rect x="310" y="345" width="220" height="120" rx="8" fill="#2E4A7A"/>
+    <text x="326" y="373" class="wb">AWS Lambda</text>
+    <text x="326" y="393" class="w">battery-ingest, Python 3.12</text>
+    <text x="326" y="420" class="w">Fetch, validate, write raw file</text>
+    <text x="326" y="438" class="w">plus meta.json with sha256</text>
+  </g>
+
+  <!-- Lambda -> S3 -->
+  <path class="line" d="M530,405 H560 V240 H602" marker-end="url(#arr)"/>
+  <text x="552" y="370" class="lbl" transform="rotate(-90 552 370)">PutObject raw/* only</text>
+
+  <!-- 3 S3 cylinder -->
+  <g>
+    <path d="M605,170 V300 A80,18 0 0 0 765,300 V170 Z" fill="#DCE8F5"/>
+    <path d="M605,198 A80,18 0 0 0 765,198 V214 A80,18 0 0 1 605,214 Z" fill="#14304F"/>
+    <path d="M605,236 A80,18 0 0 0 765,236 V252 A80,18 0 0 1 605,252 Z" fill="#14304F"/>
+    <path d="M605,274 A80,18 0 0 0 765,274 V290 A80,18 0 0 1 605,290 Z" fill="#14304F"/>
+    <ellipse cx="685" cy="170" rx="80" ry="18" fill="#14304F"/>
+    <text x="685" y="350" text-anchor="middle" class="b">Amazon S3 data lake</text>
+    <text x="685" y="369" text-anchor="middle" class="m">eu-north-1, SSE-S3,</text>
+    <text x="685" y="385" text-anchor="middle" class="m">public access blocked</text>
+    <text x="685" y="406" text-anchor="middle" class="code">raw/source=/zone=/date=/</text>
+    <text x="685" y="425" text-anchor="middle" class="s">Stored exactly as returned,</text>
+    <text x="685" y="440" text-anchor="middle" class="s">never edited; fixes go downstream</text>
+  </g>
+
+  <!-- S3 -> load_raw -->
+  <path class="line" d="M765,186 H838" marker-end="url(#arr)"/>
+  <text x="801" y="178" text-anchor="middle" class="lbl">GetObject</text>
+
+  <!-- 4 Warehouse -->
+  <g>
+    <rect x="840" y="150" width="295" height="72" rx="6" fill="#FFFFFF" stroke="#14304F" stroke-width="1.5"/>
+    <text x="856" y="171" class="b">load_raw.py</text>
+    <text x="856" y="190" class="m">S3 to raw.landing_files, idempotent</text>
+    <text x="856" y="208" class="s">Scheduled by Airflow, followed by dbt build</text>
+
+    <path class="line" d="M980,222 V238" marker-end="url(#arr)"/>
+
+    <rect x="840" y="240" width="295" height="300" rx="8" fill="#F3F6FA" stroke="#14304F" stroke-width="1.5"/>
+    <path d="M848,240 H1127 A8,8 0 0 1 1135,248 V274 H840 V248 A8,8 0 0 1 848,240 Z" fill="#14304F"/>
+    <text x="987" y="262" text-anchor="middle" class="wb" style="font-size:13px">PostgreSQL 16 warehouse with dbt</text>
+
+    <rect x="856" y="286" width="263" height="42" rx="4" fill="#FFFFFF" stroke="#9EC3E6"/>
+    <text x="866" y="302" class="lay">Raw (table)</text>
+    <text x="866" y="319" class="lc">landing_files: bytea, sha256 checked</text>
+
+    <path class="line" d="M980,328 V338" marker-end="url(#arr)"/>
+    <rect x="856" y="340" width="263" height="58" rx="4" fill="#FFFFFF" stroke="#9EC3E6"/>
+    <text x="866" y="356" class="lay">Staging (views)</text>
+    <text x="866" y="373" class="lc">stg_elpris, stg_fcr, stg_mfrr</text>
+    <text x="866" y="390" class="s">Parse, UTC keys, DST, source quirks</text>
+
+    <path class="line" d="M980,398 V408" marker-end="url(#arr)"/>
+    <rect x="856" y="410" width="263" height="42" rx="4" fill="#FFFFFF" stroke="#9EC3E6"/>
+    <text x="866" y="426" class="lay">Intermediate (views)</text>
+    <text x="866" y="443" class="lc">int_spot_hourly, int_reserve_prices_hourly</text>
+
+    <path class="line" d="M980,452 V462" marker-end="url(#arr)"/>
+    <rect x="856" y="464" width="263" height="62" rx="4" fill="#DCE8F5" stroke="#14304F"/>
+    <text x="866" y="480" class="lay">Marts (tables)</text>
+    <text x="866" y="497" class="lc">fct_arbitrage_daily, fct_reserve_daily</text>
+    <text x="866" y="514" class="lc">mart_strategy_daily, mart_upper_bound_daily</text>
+
+    <text x="987" y="558" text-anchor="middle" class="s">46 dbt tests incl. a unit test; each layer red-tested</text>
+  </g>
+
+  <!-- Marts -> Serve -->
+  <path class="line" d="M1119,495 H1152"/>
+  <path class="line" d="M1152,210 V495"/>
+  <path class="line" d="M1152,210 H1168" marker-end="url(#arr)"/>
+  <path class="line" d="M1152,332 H1168" marker-end="url(#arr)"/>
+  <path class="line" d="M1152,404 H1168" marker-end="url(#arr)"/>
+  <path class="line dot" d="M1152,470 H1168" marker-end="url(#arr)"/>
+
+  <!-- 5 Serve -->
+  <g>
+    <rect x="1170" y="150" width="230" height="120" rx="8" fill="#C55A11"/>
+    <text x="1185" y="176" class="wb">Backtest results</text>
+    <text x="1185" y="198" class="w" style="fill:#FFFFFF">Per zone and day:</text>
+    <text x="1185" y="217" class="w" style="fill:#FFFFFF">A: daily-commitment backtest</text>
+    <text x="1185" y="235" class="w" style="fill:#FFFFFF">B: theoretical upper bound</text>
+    <text x="1185" y="257" class="s" style="fill:#FBE3D3;font-style:italic">Perfect foresight, not a forecast</text>
+
+    <rect x="1170" y="300" width="230" height="64" rx="6" fill="#FFFFFF" stroke="#14304F"/>
+    <text x="1185" y="320" class="b">Flask API</text>
+    <text x="1185" y="337" class="code" style="font-size:10px">/recommendation?zone=&amp;date=</text>
+    <text x="1185" y="354" class="s">Best strategy per zone and date</text>
+
+    <rect x="1170" y="378" width="230" height="52" rx="6" fill="#FFFFFF" stroke="#14304F"/>
+    <text x="1185" y="398" class="b">dbt docs</text>
+    <text x="1185" y="417" class="s">Lineage and model documentation</text>
+
+    <rect x="1170" y="444" width="230" height="52" rx="6" fill="#FFFFFF" stroke="#9AA3B2" stroke-dasharray="2 4"/>
+    <text x="1185" y="464" class="b" style="fill:#6B7486">BI dashboard</text>
+    <text x="1185" y="483" class="s">Metabase or Superset (Phase 2)</text>
+
+    <rect x="1170" y="510" width="230" height="58" rx="6" fill="#F3F6FA" stroke="#9AA3B2" stroke-dasharray="2 4"/>
+    <text x="1185" y="530" class="b" style="fill:#6B7486">Phase 2</text>
+    <text x="1185" y="547" class="s">Optimiser C (LP), forecasting,</text>
+    <text x="1185" y="561" class="s">Databricks with a Parquet zone</text>
+  </g>
+
+  <!-- Cross-cutting concerns -->
+  <text x="40" y="604" class="h" style="fill:#5B6475">Cross-cutting concerns</text>
+  <line x1="40" y1="614" x2="1400" y2="614" stroke="#C9D3E0" stroke-width="1.5"/>
+
+  <g>
+    <rect x="40" y="628" width="319" height="122" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="40" y="628" width="319" height="30" rx="6" fill="#14304F"/><rect x="40" y="648" width="319" height="10" fill="#14304F"/>
+    <text x="54" y="648" class="wb" style="font-size:13px">CI/CD and dev workflow</text>
+    <text x="54" y="678" class="m">GitHub Actions: compile and pytest (3.12)</text>
+    <text x="54" y="696" class="m">Feature branch, PR, CI green, merge</text>
+    <text x="54" y="714" class="m">Docker Compose for the local stack</text>
+    <text x="54" y="734" class="m">dbt build runs in CI on every PR</text>
+
+    <rect x="387" y="628" width="319" height="122" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="387" y="628" width="319" height="30" rx="6" fill="#14304F"/><rect x="387" y="648" width="319" height="10" fill="#14304F"/>
+    <text x="401" y="648" class="wb" style="font-size:13px">Data quality and observability</text>
+    <text x="401" y="678" class="m">dbt data tests and a unit test, red-tested</text>
+    <text x="401" y="696" class="m">sha256 check on every landed file</text>
+    <text x="401" y="714" class="m">verify_backfill.py finds gaps in the lake</text>
+    <text x="401" y="734" class="m">Freshness alert at 14:00 if data is late</text>
+
+    <rect x="734" y="628" width="319" height="122" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="734" y="628" width="319" height="30" rx="6" fill="#14304F"/><rect x="734" y="648" width="319" height="10" fill="#14304F"/>
+    <text x="748" y="648" class="wb" style="font-size:13px">Security</text>
+    <text x="748" y="678" class="m">Least-privilege IAM identity per component</text>
+    <text x="748" y="696" class="m">Lambda role can only write raw/*</text>
+    <text x="748" y="714" class="m">Secrets only in .env (git-ignored)</text>
+    <text x="748" y="734" class="m">Local ports bound to 127.0.0.1</text>
+
+    <rect x="1081" y="628" width="319" height="122" rx="6" fill="#FFFFFF" stroke="#C9D3E0"/>
+    <rect x="1081" y="628" width="319" height="30" rx="6" fill="#14304F"/><rect x="1081" y="648" width="319" height="10" fill="#14304F"/>
+    <text x="1095" y="648" class="wb" style="font-size:13px">Model assumptions (dbt vars)</text>
+    <text x="1095" y="678" class="m">1 MW / 2 MWh, round-trip efficiency 0.85</text>
+    <text x="1095" y="696" class="m">Capacity payments only, price-taker</text>
+    <text x="1095" y="714" class="m">No SoC or endurance rules for reserves</text>
+    <text x="1095" y="734" class="m">15-min arbitrage, hourly reserves, daily totals</text>
+  </g>
+
+  <!-- Legend and footer -->
+  <g>
+    <line x1="40" y1="786" x2="72" y2="786" stroke="#5B6475" stroke-width="1.6"/>
+    <text x="80" y="790" class="s">Built</text>
+    <line x1="140" y1="786" x2="172" y2="786" stroke="#9AA3B2" stroke-width="1.6" stroke-dasharray="2 4"/>
+    <text x="180" y="790" class="s">Planned / Phase 2</text>
+    <text x="1400" y="790" text-anchor="end" class="s">v1.0, 2026-11-02</text>
+  </g>
+</svg>
