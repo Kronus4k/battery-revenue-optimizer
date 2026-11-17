@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars (git-ignored) and fill in.
+bucket_suffix = "<lowercase letters and digits>"
+
+# Optional overrides (defaults in variables.tf):
+# lake_versioning_enabled = true
+# log_retention_days      = 30

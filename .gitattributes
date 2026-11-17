@@ -1,0 +1,16 @@
+# Line endings, independent of each machine's git settings (core.autocrlf).
+# The repository stores text with LF; checkouts convert where needed.
+
+# Default: git decides what is text, stores it with LF.
+* text=auto
+
+# Windows batch files MUST have CRLF: cmd mis-handles labels/goto with LF only.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Shell scripts MUST have LF (they run inside Linux containers / CI).
+*.sh text eol=lf
+
+# Never touch binary files.
+*.png binary
+*.zip binary

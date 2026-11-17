@@ -11,9 +11,9 @@ Example events:
   {"date": "2026-09-20"}                          -> all sources, that date
   {"date": "2026-09-20", "sources": ["elpris"]}   -> only spot prices
 
-Lambda configuration this code expects (set in the console):
+Lambda configuration this code expects (set by Terraform, infra/terraform/lambda.tf):
   LAKE_TARGET=s3
-  LAKE_BUCKET=project-battery-optimizer-lake
+  LAKE_BUCKET=battery-optimizer-lake-<suffix>   (required; no default bucket)
 """
 
 from datetime import date, datetime

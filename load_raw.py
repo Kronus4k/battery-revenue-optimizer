@@ -14,9 +14,11 @@ Usage (cmd, from the project folder, after load_env):
     python load_raw.py 2026-07-09 2026-10-06
 
 Credentials:
-  * AWS: the standard env vars (AWS_ACCESS_KEY_ID, ...) loaded from .env.
-    Locally that is the least-privilege user airflow-local-invoker
-    (s3:ListBucket on raw/*, s3:GetObject on raw/*), never the admin key.
+  * AWS: no keys. AWS_PROFILE=battery-optimizer-airflow (from .env locally,
+    from docker-compose in Airflow) assumes the least-privilege IAM role of
+    that name from the SSO session: s3:ListBucket limited to prefix raw/*,
+    s3:GetObject on raw/*. Never the admin profile. Needs `aws sso login`.
+  * Lake bucket: LAKE_BUCKET (required; there is no default bucket name).
   * Warehouse: WAREHOUSE_USER / WAREHOUSE_PASSWORD / WAREHOUSE_DB from .env.
     Host/port default to the local Docker warehouse (127.0.0.1:5433);
     inside Docker (Airflow) they will be overridden to warehouse:5432.
@@ -31,9 +33,9 @@ import boto3
 import psycopg2
 
 # ---------------------------------------------------------------------------
-# Configuration: everything from environment variables, with safe defaults.
+# Configuration: everything from environment variables, with safe defaults
+# where a default is safe. The bucket has none (see lake_bucket()).
 # ---------------------------------------------------------------------------
-BUCKET = os.environ.get("LAKE_BUCKET", "project-battery-optimizer-lake")
 RAW_PREFIX = "raw/"
 
 WAREHOUSE_HOST = os.environ.get("WAREHOUSE_HOST", "127.0.0.1")
@@ -76,7 +78,18 @@ def parse_raw_key(key):
 # ---------------------------------------------------------------------------
 # S3 side
 # ---------------------------------------------------------------------------
-def list_data_keys(s3, start, end):
+def lake_bucket():
+    """The lake bucket, read at call time. No default name: a missing
+    LAKE_BUCKET must fail, never fall back to a bucket we may not own.
+    Own copy (not imported from ingest.py): this script is mounted into
+    Airflow on its own."""
+    bucket = os.environ.get("LAKE_BUCKET")
+    if not bucket:
+        raise RuntimeError("LAKE_BUCKET is not set")
+    return bucket
+
+
+def list_data_keys(s3, bucket, start, end):
     """
     List every DATA file under raw/ whose delivery date is in [start, end].
     Uses a paginator: one ListObjectsV2 call returns at most 1000 keys,
@@ -84,7 +97,7 @@ def list_data_keys(s3, start, end):
     """
     found = []
     paginator = s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=BUCKET, Prefix=RAW_PREFIX):
+    for page in paginator.paginate(Bucket=bucket, Prefix=RAW_PREFIX):
         for obj in page.get("Contents", []):
             parsed = parse_raw_key(obj["Key"])
             if parsed and start <= parsed[2] <= end:
@@ -94,7 +107,7 @@ def list_data_keys(s3, start, end):
     return found
 
 
-def read_meta(s3, data_key):
+def read_meta(s3, bucket, data_key):
     """
     Read the _meta.json next to a data file. Option C (Day 1) writes it
     together with every data file, so a missing one is unexpected: we load
@@ -102,7 +115,7 @@ def read_meta(s3, data_key):
     """
     meta_key = data_key.rsplit("/", 1)[0] + "/_meta.json"
     try:
-        body = s3.get_object(Bucket=BUCKET, Key=meta_key)["Body"].read()
+        body = s3.get_object(Bucket=bucket, Key=meta_key)["Body"].read()
     except s3.exceptions.NoSuchKey:
         return None
     return json.loads(body)
@@ -141,8 +154,9 @@ def connect_warehouse():
 
 
 def load(start, end):
+    bucket = lake_bucket()                  # fails before any AWS/DB call if unset
     s3 = boto3.client("s3")
-    keys = list_data_keys(s3, start, end)
+    keys = list_data_keys(s3, bucket, start, end)
     print(f"Found {len(keys)} data files in S3 for {start} -> {end}")
 
     counts = {"inserted": 0, "updated": 0, "unchanged": 0}
@@ -152,8 +166,8 @@ def load(start, end):
         # 'with conn' commits on success and rolls back on any exception.
         with conn, conn.cursor() as cur:
             for key, (source, zone, delivery_date, _file) in keys:
-                content = s3.get_object(Bucket=BUCKET, Key=key)["Body"].read()
-                meta = read_meta(s3, key)
+                content = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+                meta = read_meta(s3, bucket, key)
                 cur.execute(UPSERT_SQL, (
                     source, zone, delivery_date, key,
                     psycopg2.Binary(content),                 # bytes -> bytea, untouched

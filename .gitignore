@@ -15,6 +15,17 @@ __pycache__/
 build/
 *.zip
 
+# ---- Terraform (lock file IS committed; state lives in S3) ----
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+terraform.tfvars
+*.auto.tfvars
+
 # ---- Data and runtime output (data lives in S3, not git) ----
 data/
 logs/

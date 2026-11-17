@@ -8,7 +8,8 @@ record_network_error from here, so every source follows the same rules.
 Run:
     python ingest.py               # today's spot prices, to local disk
     python ingest.py 2026-09-20    # a specific date
-    set LAKE_TARGET=s3             # (Windows cmd) then runs write to S3
+    set LAKE_TARGET=s3             # (Windows cmd) then runs write to S3,
+    set LAKE_BUCKET=<bucket>       # into this bucket (required for s3)
 """
 
 # --- Imports -----------------------------------------------------------------
@@ -30,10 +31,24 @@ BASE_URL = "https://www.elprisetjustnu.se/api/v1/prices"
 # Environment variables are settings given to a program from outside, so the
 # same code can run locally, in Lambda, or in CI without being edited.
 #   LAKE_TARGET=local (default) -> files under data/raw/... on your disk
-#   LAKE_TARGET=s3              -> objects under raw/... in the S3 bucket
-LAKE_TARGET = os.environ.get("LAKE_TARGET", "local")
-LAKE_BUCKET = os.environ.get("LAKE_BUCKET", "project-battery-optimizer-lake")
+#   LAKE_TARGET=s3              -> objects under raw/... in bucket LAKE_BUCKET
+# Both are read when a file is WRITTEN, not at import, so tests (and a
+# changed setting) take effect. There is deliberately NO default bucket name:
+# a missing LAKE_BUCKET must fail, never write to a bucket we may not own.
+# In AWS, Terraform sets both on the Lambda (infra/terraform/lambda.tf).
 LOCAL_ROOT = Path("data")                       # local lake root: data/raw/...
+
+
+def lake_target() -> str:
+    return os.environ.get("LAKE_TARGET", "local")
+
+
+def lake_bucket() -> str:
+    """The S3 bucket of the lake. Only needed when LAKE_TARGET=s3."""
+    bucket = os.environ.get("LAKE_BUCKET")
+    if not bucket:
+        raise RuntimeError("LAKE_BUCKET is not set (required when LAKE_TARGET=s3)")
+    return bucket
 
 # Content types tell S3 (and browsers) what a file is.
 CONTENT_TYPES = {".json": "application/json", ".csv": "text/csv"}
@@ -43,8 +58,8 @@ _s3 = None                                      # S3 client, created on first us
 
 def _s3_client():
     """Create the boto3 S3 client once and reuse it (creating one is slow).
-    boto3 finds your keys in C:/Users/<you>/.aws/credentials locally,
-    and uses the Lambda's role automatically in AWS. No keys in code."""
+    In AWS, boto3 uses the Lambda's execution role automatically. Locally it
+    uses the profile in AWS_PROFILE (an SSO session). No keys anywhere."""
     global _s3
     if _s3 is None:
         import boto3                            # imported here: local runs don't need it
@@ -56,12 +71,14 @@ def put(prefix: str, filename: str, body: bytes) -> None:
     """Write one file to the lake, wherever the lake is.
     This is the ONLY function that knows about disk vs S3."""
     key = f"{prefix}/{filename}"                # e.g. raw/source=elpris/.../_meta.json
-    if LAKE_TARGET == "s3":
+    if lake_target() == "s3":
+        bucket = lake_bucket()                  # fails BEFORE any S3 call if unset
         # S3 has no real folders: the "path" is just part of the object's name
         # (its key). So there's nothing like mkdir; we simply write the object.
-        # Writing to an existing key replaces it -> idempotency still holds.
+        # Writing to an existing key replaces it -> idempotency still holds
+        # (bucket versioning keeps the previous bytes as an older version).
         _s3_client().put_object(
-            Bucket=LAKE_BUCKET,
+            Bucket=bucket,
             Key=key,
             Body=body,
             ContentType=CONTENT_TYPES.get(Path(filename).suffix, "application/octet-stream"),
@@ -74,8 +91,8 @@ def put(prefix: str, filename: str, body: bytes) -> None:
 
 def where(prefix: str) -> str:
     """Human-readable location for log lines."""
-    if LAKE_TARGET == "s3":
-        return f"s3://{LAKE_BUCKET}/{prefix}"
+    if lake_target() == "s3":
+        return f"s3://{lake_bucket()}/{prefix}"
     return str(LOCAL_ROOT / prefix)
 
 

@@ -23,8 +23,8 @@ This is a **retrospective backtest with perfect foresight**, not a forecast. Eve
 
 [![Battery Revenue Optimizer data platform layers](docs/images/platform_layers.svg)](docs/images/platform_layers.svg)
 
-1. **Ingest.** Airflow invokes the `battery-ingest` Lambda: spot prices at 13:30 (published for tomorrow) and SvK reserve data at 10:00 (published for yesterday). The Lambda writes each response to S3 exactly as returned, next to a `meta.json` with sha256 hashes of the file and of its records.
-2. **Lake.** One file per source, zone and delivery date under `raw/source=<src>/zone=<zone>/date=<date>/`. Re-running a day overwrites the same key, so ingestion is idempotent.
+1. **Ingest.** Airflow invokes the `battery-optimizer-ingest` Lambda: spot prices at 13:30 (published for tomorrow) and SvK reserve data at 10:00 (published for yesterday). The Lambda writes each response to S3 exactly as returned, next to a `_meta.json` with sha256 hashes of the file and of its records.
+2. **Lake.** One file per source, zone and delivery date under `raw/source=<src>/zone=<zone>/date=<date>/`. Re-running a day overwrites the same key, so ingestion is idempotent; S3 versioning keeps the previous bytes, so a source revision never destroys what was received before.
 3. **Load.** `load_raw.py` copies raw files into `raw.landing_files` in Postgres as bytes, with an idempotent upsert, and verifies each sha256 after landing.
 4. **Transform.** dbt parses the raw bytes in staging views, aligns spot and reserve prices to hourly grain in intermediate views, and computes daily revenue per strategy in mart tables.
 5. **Serve.** A Flask API returns the best strategy, its revenue and the gap to the ceiling for a zone and date. dbt docs show lineage from every mart column back to the raw landing table.
@@ -34,7 +34,8 @@ This is a **retrospective backtest with perfect foresight**, not a forecast. Eve
 
 | Area | Tools |
 | --- | --- |
-| Cloud | AWS eu-north-1 (Stockholm): S3, Lambda, IAM |
+| Cloud | AWS eu-north-1 (Stockholm): S3, Lambda, IAM, CloudWatch Logs; sign-in through IAM Identity Center (SSO) |
+| Infrastructure as code | Terraform 1.11 (AWS provider 6.71), state in its own S3 bucket |
 | Ingestion | Python 3.12 on Lambda, requests, boto3 |
 | Orchestration | Apache Airflow in Docker Compose |
 | Warehouse | PostgreSQL 16 in Docker |
@@ -116,14 +117,19 @@ What it says: reserve capacity payments beat pure arbitrage in every zone over t
 
 ## Security
 
-- **Least privilege.** The Lambda role can only write `raw/*`. The local Airflow identity can only invoke the Lambda and read `raw/*`. No code runs with administrator rights.
-- **Secrets stay local.** Credentials live in a git-ignored `.env`. Staged files are scanned before each push.
-- **Private by default.** The S3 bucket blocks public access and is encrypted with SSE-S3. Docker ports are bound to `127.0.0.1`.
-- **No identifiers in the repo.** Account IDs and access key IDs are never committed.
+- **No long-lived AWS keys.** People sign in through IAM Identity Center (SSO). Airflow and the local scripts assume the IAM role `battery-optimizer-airflow` from that session through an AWS profile; the role's trust policy accepts only that SSO permission set. The trade-off: scheduled runs need a live SSO session that day; the freshness check catches a missed day and `ingest_daily` backfills it. In production, the same policy would be attached to the compute running Airflow (workload identity), so no human session and no keys are involved.
+- **Least privilege.** The Lambda role can only write `raw/*` and its own log stream. The Airflow role can only invoke the Lambda and list and read `raw/*`. No code runs with administrator rights.
+- **Secrets stay local.** Passwords live in a git-ignored `.env`. Staged files are scanned before each push.
+- **Private by default.** Both S3 buckets block public access, disable ACLs, are encrypted with SSE-S3 and reject requests that are not over TLS. Docker ports are bound to `127.0.0.1`.
+- **No identifiers in the repo.** Account IDs, ARNs containing them and SSO URLs are never committed; Terraform reads the account ID at plan time.
 
 ## Cost
 
-S3 and Lambda run on the AWS Free plan. Airflow, Postgres and Flask run locally in Docker Compose, so nothing bills while the laptop is off. Managed Airflow (MWAA) is the production target only, because it bills by the hour even when idle.
+**Estimate, not a measured bill: well under USD 1 per month.** Everything in AWS is billed on demand only (S3, Lambda, CloudWatch Logs); nothing bills by the hour while idle. The data is small (a few KB-sized files per day plus their metadata) and the Lambda runs about 10 short invocations a day at 256 MB. Airflow, Postgres and Flask run locally in Docker Compose, so nothing bills while the laptop is off.
+
+Measuring the real cost of this project needs the `project` tag (on every resource) to be activated as a cost allocation tag. That is an account-level billing setting owned by the account owner.
+
+Managed Airflow (MWAA) is the production target only, because it bills by the hour even when idle.
 
 ## Repository layout
 
@@ -138,20 +144,36 @@ battery_dbt/         dbt project: staging, intermediate, marts, tests
 api/                 Flask API
 sql/                 warehouse setup (landing table)
 tests/               pytest suite
+infra/bootstrap/     one-time script for the Terraform state bucket
+infra/lambda/        reproducible Lambda zip build
+infra/terraform/     lake bucket, Lambda, IAM roles, log group
 docs/images/         architecture diagrams
 docker-compose.yml   local stack: Airflow, Postgres warehouse
 ```
 
 ## Running it
 
-Prerequisites: an AWS account, Docker Desktop, and Python 3.12 or later.
+Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, Docker Desktop, and Python 3.12 or later. Commands are for Windows cmd, from the repository root unless noted.
 
-1. Create the S3 bucket, the `battery-ingest` Lambda and the two IAM identities (Lambda role, Airflow invoker) in eu-north-1.
-2. Copy `.env.example` to `.env` and fill in the warehouse and AWS settings.
-3. Start the stack with `docker compose up -d` and create the landing table from `sql/`.
-4. In Airflow, unpause `ingest_elpris` and `ingest_svk`. Keep `ingest_daily` paused; it is for backfills only.
-5. Load and transform: `python load_raw.py <start> <end>`, then `dbt build` inside `battery_dbt/`.
-6. Query the API: `GET /recommendation?zone=SE3&date=2026-09-15`.
+1. **Sign in.** Once: `aws configure sso --profile battery-optimizer` (region eu-north-1). Then, each working day: `aws sso login --profile battery-optimizer`.
+2. **State bucket** (once): `infra\bootstrap\create_state_bucket.cmd <suffix>` (lowercase letters and digits).
+3. **Lambda package:** `python infra\lambda\build_lambda.py` (rebuild after changing the ingestion code).
+4. **AWS resources**, in `infra\terraform`: copy `terraform.tfvars.example` to `terraform.tfvars` and set `bucket_suffix`, then
+   `terraform init -backend-config="bucket=battery-optimizer-tfstate-<suffix>" -backend-config="profile=battery-optimizer"`,
+   `terraform plan -out=tfplan`, review it, and `terraform apply tfplan`.
+5. **Airflow profile:** add to `%USERPROFILE%\.aws\config`, with the account ID from `aws sts get-caller-identity --profile battery-optimizer --query Account --output text`:
+   ```ini
+   [profile battery-optimizer-airflow]
+   role_arn = arn:aws:iam::<ACCOUNT_ID>:role/battery-optimizer-airflow
+   source_profile = battery-optimizer
+   role_session_name = airflow-local
+   region = eu-north-1
+   ```
+6. **Settings:** copy `.env.example` to `.env`; set `LAKE_BUCKET` (`terraform output lake_bucket_name`) and the Airflow and warehouse values. `.env` holds no AWS keys.
+7. Start the stack with `docker compose up -d` and create the landing table from `sql/`.
+8. In Airflow, unpause `ingest_elpris` and `ingest_svk`. Keep `ingest_daily` paused; it is for backfills only. Scheduled runs need a live SSO session (step 1) that day.
+9. Load and transform: `load_env`, then `python load_raw.py <start> <end>`, then `dbt build` inside `battery_dbt/`.
+10. Query the API: `GET /recommendation?zone=SE3&date=2026-09-15`.
 
 ## Design decisions
 
@@ -176,5 +198,5 @@ Prerequisites: an AWS account, Docker Desktop, and Python 3.12 or later.
 - Price forecasting model on a feature table, with weather data from the SMHI open API
 - Databricks version of the transformations with a Parquet processed zone
 - BI dashboard (Metabase or Superset)
-- Managed Airflow, Terraform for the AWS setup
+- Managed Airflow, with the Airflow role's policy attached to its compute (workload identity, no SSO session)
 - Migrate FCR from Mimer to SVK Data Service before Mimer is retired
