@@ -53,8 +53,8 @@ This is a **retrospective backtest with perfect foresight**, not a forecast. Eve
 
 Source quirks are handled and tested in dbt staging, never by editing raw files:
 
-- **FCR CSV:** semicolon separator, decimal commas, a `Summa` totals row, UTF-8 BOM, CRLF line endings, trailing separators, extra DK2 columns, and local time without an offset (02:00 appears twice on the October DST day).
-- **mFRR JSON:** UTC timestamps without an offset, so they are declared UTC explicitly and cross-checked against the Swedish-time column. The response envelope's `total` and `limit` feed a truncation test.
+- **FCR CSV:** semicolon separator, decimal commas, a `Summa` totals row, UTF-8 BOM, CRLF line endings, trailing separators, extra DK2 columns, and local time without an offset. On the October DST day the repeated 02:00 hour is labelled `02:01:00`; staging flags it (`is_repeated_hour`) and normalizes the label. The spring DST day is not yet covered by real data.
+- **mFRR JSON:** UTC timestamps without an offset, so they are declared UTC explicitly and cross-checked against the Swedish-time column. The response envelope's `total` and `limit` feed a truncation test. Some hours are not published at all (SE1 up from 2026-10-16); a warn-level test lists them and they count as 0 revenue.
 - **Spot JSON:** prices in EUR per kWh (converted to EUR per MWh), negative prices, and 92 or 100 quarter-hours on DST days.
 
 ## What is in the platform
@@ -85,8 +85,8 @@ Neither is "expected revenue".
 | sha256 after landing | Loader | Corrupted or partial copies between S3 and Postgres |
 | Lake gap check (`verify_backfill.py`) | S3 | Days a source never delivered or a run never wrote |
 | Freshness alert at 15:30 | Airflow | Today's data has not arrived |
-| 46 dbt tests | Staging, intermediate, marts | Duplicate keys, nulls, unexpected products and zones, truncated API responses, wrong row counts per day |
-| dbt unit test | Marts | Arbitrage logic against a hand-calculated day |
+| 50 dbt data tests | Staging, intermediate, marts | Duplicate keys, nulls, unexpected products and zones, truncated API responses, wrong row counts per day (missing mFRR hours: warning) |
+| 2 dbt unit tests | Staging, marts | FCR parsing of a hand-made 25-hour DST day; arbitrage logic against a hand-calculated day |
 
 Every check has been seen to fail at least once (a deliberately broken test, a reintroduced bug, or a non-UTC database session) before it was trusted.
 
@@ -111,7 +111,7 @@ What it says: reserve capacity payments beat pure arbitrage in every zone over t
 
 - **Raw is immutable.** Files are stored exactly as the source returned them; every fix lives in dbt, where it is versioned and tested.
 - **Idempotent everywhere.** Deterministic S3 keys, upserts in the loader, and dbt models rebuilt from raw, so any day can be re-run safely.
-- **Tested.** pytest for pure Python functions (key parsing, request building), dbt data tests for data properties, a dbt unit test for logic with a known answer.
+- **Tested.** pytest for pure Python functions (key parsing, request building), dbt data tests for data properties, dbt unit tests for logic with a known answer.
 - **CI on every pull request.** GitHub Actions on pinned Ubuntu with Python 3.12 compiles the code, runs pytest and runs `dbt build`.
 - **Small pull requests.** One branch per component, a PR with what, why, evidence and what is not covered, CI green before merge.
 
@@ -190,6 +190,7 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
 - The battery is a price-taker: its bids never move the price.
 - FCR price formation is taken from published results and not independently verified.
 - Perfect foresight: the backtest knows every price of the day in advance.
+- Hours a source did not publish earn 0 (conservative). This affects mFRR up in SE1 from 2026-10-16; most likely no capacity was procured in those hours, which SvK's documentation does not confirm.
 
 ## Roadmap (Phase 2)
 

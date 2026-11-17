@@ -2,8 +2,16 @@ version: 2
 
 models:
   - name: fct_reserve_daily
-    description: "Strategy A reserve leg: revenue per zone, day and product (capacity payment only, 1 MW all day)."
+    description: >
+      Strategy A reserve leg: revenue per zone, day and product (capacity payment only, 1 MW all day).
+      Revenue sums the hours the source published; a missing hour earns 0 (conservative).
+      n_hours < expected_hours shows such gaps (mFRR SE1 up since 2026-10-16).
     columns:
+      - name: n_hours
+        description: "Hours with a published price."
+      - name: expected_hours
+        description: "Hours in the local day: 24, or 23 / 25 on DST days."
+        data_tests: [not_null]
       - name: reserve_revenue_eur
         data_tests: [not_null]
 

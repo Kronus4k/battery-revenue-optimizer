@@ -25,3 +25,108 @@ models:
       - name: volume_mw
         data_tests:
           - not_null
+      - name: datum_local
+        description: "SvK's Datum text, with Mimer's '02:01:00' label for the repeated October hour normalized to '02:00:00' (only on the is_repeated_hour row)."
+        data_tests:
+          - not_null
+      - name: is_repeated_hour
+        description: "True for the second occurrence of a local hour (02:00 CET on the October DST day)."
+        data_tests:
+          - not_null
+
+unit_tests:
+  - name: stg_fcr_autumn_dst_day_has_25_hours
+    description: >
+      Hand-made Mimer CSV for the October DST day 2026-10-25: header (with BOM),
+      25 hourly rows where the repeated 02:00 hour is labelled '02:01:00' (as in
+      SvK's real file), a Summa row, CRLF endings, decimal comma. Expect 25 rows
+      per product and zone; the 4th row is 01:00 UTC (02:00 CET), flagged
+      is_repeated_hour, with datum_local '02:00:00'; prices map to the right row
+      (FCR-N i+0.5, FCR-D up 100+i+0.5, FCR-D down 200+i+0.5 for row i).
+      Not covered: the spring DST day (23 hours), whose Mimer labelling is unproven.
+    model: stg_fcr
+    given:
+      - input: source('raw', 'landing_files')
+        format: sql
+        rows: |
+          select 'svk_fcr'::text as source, 'ALL'::text as zone,
+                 date '2026-10-25' as delivery_date, 'unit-test'::text as s3_key,
+                 convert_to(
+                   E'\uFEFFDatum;FCR-N Pris (EUR/MW);Total;...\r\n'
+                   || (select string_agg(
+                         d || ';' || i || ',5;10;1;2;3;4;0;'
+                           || (100 + i) || ',5;10;1;2;3;4;0;'
+                           || (200 + i) || ',5;10;1;2;3;4;0;',
+                         E'\r\n' order by i)
+                       from (values
+                (1, '2026-10-25 00:00:00'),
+                (2, '2026-10-25 01:00:00'),
+                (3, '2026-10-25 02:00:00'),
+                (4, '2026-10-25 02:01:00'),
+                (5, '2026-10-25 03:00:00'),
+                (6, '2026-10-25 04:00:00'),
+                (7, '2026-10-25 05:00:00'),
+                (8, '2026-10-25 06:00:00'),
+                (9, '2026-10-25 07:00:00'),
+                (10, '2026-10-25 08:00:00'),
+                (11, '2026-10-25 09:00:00'),
+                (12, '2026-10-25 10:00:00'),
+                (13, '2026-10-25 11:00:00'),
+                (14, '2026-10-25 12:00:00'),
+                (15, '2026-10-25 13:00:00'),
+                (16, '2026-10-25 14:00:00'),
+                (17, '2026-10-25 15:00:00'),
+                (18, '2026-10-25 16:00:00'),
+                (19, '2026-10-25 17:00:00'),
+                (20, '2026-10-25 18:00:00'),
+                (21, '2026-10-25 19:00:00'),
+                (22, '2026-10-25 20:00:00'),
+                (23, '2026-10-25 21:00:00'),
+                (24, '2026-10-25 22:00:00'),
+                (25, '2026-10-25 23:00:00')
+                       ) as v(i, d))
+                   || E'\r\nSumma;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;\r\n',
+                   'UTF8') as content,
+                 null::jsonb as meta, now() as loaded_at
+    expect:
+      format: sql
+      rows: |
+        select p.zone as bidding_zone, date '2026-10-25' as delivery_date,
+               h.ts_utc, h.datum_local::timestamp as ts_local,
+               h.datum_text, h.i as hour_index, p.product,
+               (h.i + p.base + 0.5)::numeric as price_eur_mw_h,
+               p.vol::numeric as volume_mw, 10::numeric as product_total_mw,
+               0::numeric as dk2_volume_mw,
+               h.datum_local, h.rep as is_repeated_hour
+        from (values
+                (1, timestamptz '2026-10-24 22:00:00+00', '2026-10-25 00:00:00', '2026-10-25 00:00:00', false),
+                (2, timestamptz '2026-10-24 23:00:00+00', '2026-10-25 01:00:00', '2026-10-25 01:00:00', false),
+                (3, timestamptz '2026-10-25 00:00:00+00', '2026-10-25 02:00:00', '2026-10-25 02:00:00', false),
+                (4, timestamptz '2026-10-25 01:00:00+00', '2026-10-25 02:01:00', '2026-10-25 02:00:00', true),
+                (5, timestamptz '2026-10-25 02:00:00+00', '2026-10-25 03:00:00', '2026-10-25 03:00:00', false),
+                (6, timestamptz '2026-10-25 03:00:00+00', '2026-10-25 04:00:00', '2026-10-25 04:00:00', false),
+                (7, timestamptz '2026-10-25 04:00:00+00', '2026-10-25 05:00:00', '2026-10-25 05:00:00', false),
+                (8, timestamptz '2026-10-25 05:00:00+00', '2026-10-25 06:00:00', '2026-10-25 06:00:00', false),
+                (9, timestamptz '2026-10-25 06:00:00+00', '2026-10-25 07:00:00', '2026-10-25 07:00:00', false),
+                (10, timestamptz '2026-10-25 07:00:00+00', '2026-10-25 08:00:00', '2026-10-25 08:00:00', false),
+                (11, timestamptz '2026-10-25 08:00:00+00', '2026-10-25 09:00:00', '2026-10-25 09:00:00', false),
+                (12, timestamptz '2026-10-25 09:00:00+00', '2026-10-25 10:00:00', '2026-10-25 10:00:00', false),
+                (13, timestamptz '2026-10-25 10:00:00+00', '2026-10-25 11:00:00', '2026-10-25 11:00:00', false),
+                (14, timestamptz '2026-10-25 11:00:00+00', '2026-10-25 12:00:00', '2026-10-25 12:00:00', false),
+                (15, timestamptz '2026-10-25 12:00:00+00', '2026-10-25 13:00:00', '2026-10-25 13:00:00', false),
+                (16, timestamptz '2026-10-25 13:00:00+00', '2026-10-25 14:00:00', '2026-10-25 14:00:00', false),
+                (17, timestamptz '2026-10-25 14:00:00+00', '2026-10-25 15:00:00', '2026-10-25 15:00:00', false),
+                (18, timestamptz '2026-10-25 15:00:00+00', '2026-10-25 16:00:00', '2026-10-25 16:00:00', false),
+                (19, timestamptz '2026-10-25 16:00:00+00', '2026-10-25 17:00:00', '2026-10-25 17:00:00', false),
+                (20, timestamptz '2026-10-25 17:00:00+00', '2026-10-25 18:00:00', '2026-10-25 18:00:00', false),
+                (21, timestamptz '2026-10-25 18:00:00+00', '2026-10-25 19:00:00', '2026-10-25 19:00:00', false),
+                (22, timestamptz '2026-10-25 19:00:00+00', '2026-10-25 20:00:00', '2026-10-25 20:00:00', false),
+                (23, timestamptz '2026-10-25 20:00:00+00', '2026-10-25 21:00:00', '2026-10-25 21:00:00', false),
+                (24, timestamptz '2026-10-25 21:00:00+00', '2026-10-25 22:00:00', '2026-10-25 22:00:00', false),
+                (25, timestamptz '2026-10-25 22:00:00+00', '2026-10-25 23:00:00', '2026-10-25 23:00:00', false)
+             ) as h(i, ts_utc, datum_text, datum_local, rep)
+        cross join (values
+                ('fcr_n', 'SE1', 0, 1), ('fcr_n', 'SE2', 0, 2), ('fcr_n', 'SE3', 0, 3), ('fcr_n', 'SE4', 0, 4),
+                ('fcr_d_up', 'SE1', 100, 1), ('fcr_d_up', 'SE2', 100, 2), ('fcr_d_up', 'SE3', 100, 3), ('fcr_d_up', 'SE4', 100, 4),
+                ('fcr_d_down', 'SE1', 200, 1), ('fcr_d_down', 'SE2', 200, 2), ('fcr_d_down', 'SE3', 200, 3), ('fcr_d_down', 'SE4', 200, 4)
+             ) as p(product, zone, base, vol)
