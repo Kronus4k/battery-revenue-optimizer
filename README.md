@@ -1,6 +1,6 @@
 # Battery Revenue Optimizer
 
-A data platform that backtests, for every Swedish bidding zone and every day, whether a 1 MW / 2 MWh battery would have earned more from spot-price arbitrage or from frequency reserve markets (FCR-N, FCR-D up/down, mFRR up/down). It also shows how much a perfect optimiser could add on top. Python ingestion on AWS Lambda lands raw market data in S3, Airflow orchestrates, dbt models it in Postgres, and a Flask API serves the result.
+A data platform that backtests, for every Swedish bidding zone and every day, whether a 1 MW / 2 MWh battery would have earned more from spot-price arbitrage or from frequency reserve markets (FCR-N, FCR-D up/down, mFRR up/down). It also computes a theoretical ceiling for mixing strategies quarter by quarter, ignoring state of charge. Python ingestion on AWS Lambda lands raw market data in S3, Airflow orchestrates, dbt models it in Postgres, and a Flask API serves the result.
 
 [![Battery Revenue Optimizer architecture](docs/images/architecture.svg)](docs/images/architecture.svg)
 
@@ -15,9 +15,32 @@ The platform answers three questions per zone and day:
 
 - Which single strategy would have earned the most?
 - How much did it earn, in EUR?
-- How much more could a perfect optimiser have earned by mixing strategies hour by hour?
+- What is the theoretical ceiling if strategies could be mixed quarter by quarter, ignoring state of charge?
 
 This is a **retrospective backtest with perfect foresight**, not a forecast. Every simplification is listed under [Limitations](#limitations).
+
+## Results
+
+<!-- results:window:start -->
+**139 days, 2026-07-01 → 2026-11-16, data as of 2026-11-17.** Averages in EUR per day for a 1 MW / 2 MWh battery.
+<!-- results:window:end -->
+
+<!-- results:summary:start -->
+| Zone | Arbitrage only | Best reserve product (days best) | A: daily-commitment backtest (perfect foresight) | B: theoretical upper bound | Ceiling above A (B / A − 1) |
+| --- | --- | --- | --- | --- | --- |
+| SE1 | 56.7 | mFRR down, 458.7 (82 of 139) | 542.4 | 717.6 | +32 % |
+| SE2 | 61.5 | FCR-N, 395.3 (108 of 139) | 456.4 | 693.3 | +52 % |
+| SE3 | 141.2 | FCR-N, 395.3 (128 of 139) | 434.0 | 1,031.6 | +138 % |
+| SE4 | 206.2 | mFRR up, 722.5 (95 of 139) | 796.3 | 1,476.8 | +85 % |
+<!-- results:summary:end -->
+
+<!-- results:coverage:start -->
+SE1 mFRR up: 3,245 of 3,337 hours published (10 days with gaps). Unpublished hours count as 0 revenue.
+<!-- results:coverage:end -->
+
+Reserve capacity payments beat spot arbitrage in every zone: strategy A earns 3 to 10 times as much as arbitrage alone. The ranking is stable: each zone's best reserve product and the order of zones (SE4, SE1, SE2, SE3) are the same as in the first 99 days to 2026-10-07, while A fell 4–9 % in SE1–SE3 and rose 11 % in SE4. The gap between A and the ceiling widened most in SE3 as daily spot spreads grew (76 → 180 EUR/MWh on average from July to the first half of November); B ignores state of charge, so it widens with volatility by construction, and how much a real, state-of-charge-constrained optimiser could capture is the Phase 2 question (optimiser C). All figures assume perfect foresight and count capacity payments only; they are backtest results, not expected revenue.
+
+Method, assumptions, caveats and charts: [docs/results.md](docs/results.md).
 
 ## How data flows
 
@@ -94,19 +117,6 @@ Every check has been seen to fail at least once (a deliberately broken test, a r
 
 `ts_utc` is the key everywhere; local time is derived in dbt. Every conversion states UTC explicitly (`::timestamp at time zone 'UTC'` for offset-less text and three-argument `date_trunc(..., 'UTC')`). Timestamp logic is tested in a session set to `Europe/Stockholm`, so a forgotten conversion shows up as a failing test rather than a silently shifted hour.
 
-## Results
-
-Backtest over 99 days, 2026-07-01 to 2026-10-07, in EUR per day (averages):
-
-| Zone | Arbitrage | Best reserve product | Strategy A (best per day) | Strategy B ceiling | Room for an optimiser |
-| --- | --- | --- | --- | --- | --- |
-| SE1 | 57.7 | mFRR down, 515.6 | 593.0 | 772.3 | +30 % |
-| SE2 | 61.0 | FCR-N, 406.2 | 492.0 | 737.8 | +50 % |
-| SE3 | 128.3 | FCR-N, 406.2 (best on 91 of 99 days) | 453.9 | 949.7 | +109 % |
-| SE4 | 210.2 | mFRR up, 618.9 | 719.6 | 1,432.1 | +99 % |
-
-What it says: reserve capacity payments beat pure arbitrage in every zone over this period, often by a factor of three or more. The ceiling is widest in SE3 and SE4, so that is where an optimiser would add the most.
-
 ## Engineering practice
 
 - **Raw is immutable.** Files are stored exactly as the source returned them; every fix lives in dbt, where it is versioned and tested.
@@ -142,12 +152,14 @@ verify_backfill.py   gap check over the lake
 dags/                Airflow DAGs
 battery_dbt/         dbt project: staging, intermediate, marts, tests
 api/                 Flask API
-sql/                 warehouse setup (landing table)
+sql/                 warehouse setup (landing table); sql/results/ result queries
+scripts/             make_results.py: result tables and charts from the marts
 tests/               pytest suite
 infra/bootstrap/     one-time script for the Terraform state bucket
 infra/lambda/        reproducible Lambda zip build
 infra/terraform/     lake bucket, Lambda, IAM roles, log group
-docs/images/         architecture diagrams
+docs/results.md      results: method, assumptions, caveats, charts
+docs/images/         architecture diagrams and result charts
 docker-compose.yml   local stack: Airflow, Postgres warehouse
 ```
 
@@ -174,6 +186,7 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
 8. In Airflow, unpause `ingest_elpris` and `ingest_svk`. Keep `ingest_daily` paused; it is for backfills only. Scheduled runs need a live SSO session (step 1) that day.
 9. Load and transform: `load_env`, then `python load_raw.py <start> <end>`, then `dbt build` inside `battery_dbt/`.
 10. Query the API: `GET /recommendation?zone=SE3&date=2026-09-15`.
+11. Results: `pip install -r requirements-results.txt`, then `python scripts/make_results.py <start> <end> --as-of <fetch date>`. It rewrites the result tables in this README and `docs/results.md` and the charts in `docs/images/`.
 
 ## Design decisions
 
