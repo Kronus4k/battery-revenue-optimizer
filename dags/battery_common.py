@@ -13,7 +13,8 @@ import json
 from datetime import timedelta
 from zoneinfo import ZoneInfo
 
-LAMBDA_NAME = "battery-ingest"
+# Created by Terraform (infra/terraform/lambda.tf). Not a secret, so a constant.
+LAMBDA_NAME = "battery-optimizer-ingest"
 MARKET_TZ = ZoneInfo("Europe/Stockholm")
 
 ALL_SOURCES = ["elpris", "svk_fcr", "svk_mfrr"]

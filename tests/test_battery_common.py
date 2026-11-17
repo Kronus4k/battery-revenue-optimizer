@@ -11,6 +11,7 @@ import pytest
 
 from battery_common import (
     ALL_SOURCES,
+    LAMBDA_NAME,
     check_response,
     delivery_date_for,
     find_failures,
@@ -96,3 +97,10 @@ def test_check_response_missing_source():
 
 def test_check_response_empty_body():
     assert check_response(200, None, {}, ["elpris"]) == ["elpris=MISSING"]
+
+
+# ---------------------------------------------------------------- Lambda name
+def test_lambda_name_is_the_terraform_managed_function():
+    # Migration Phase 4 (T2): the old account's Lambda is gone.
+    # Must match function_name in infra/terraform/lambda.tf.
+    assert LAMBDA_NAME == "battery-optimizer-ingest"

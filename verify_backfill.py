@@ -7,22 +7,31 @@ side independently: for every delivery date in the range, does each expected
 source/zone folder contain a _meta.json? (_meta.json is only written together
 with the data file, Option C from Day 1, so its presence = data landed.)
 
-Runs on your laptop (any identity that can list raw/*) and, since Day 4, inside
-Airflow: the monitor_freshness DAG imports find_gaps/list_raw_keys and runs
-with the airflow-local-invoker key. That key CAN list raw/* since Day 3
-(read-raw-zone policy: s3:ListBucket with prefix raw/*, s3:GetObject on raw/*).
-Day 2 text said it couldn't; that was true before read-raw-zone was added.
+Runs on your laptop and, since Day 4, inside Airflow: the monitor_freshness
+DAG imports find_gaps/list_raw_keys. Both run as the IAM role
+battery-optimizer-airflow (profile of the same name, assumed from the SSO
+session): s3:ListBucket limited to prefix raw/*, s3:GetObject on raw/*.
 
-Usage (cmd, venv active):
+The bucket comes from LAKE_BUCKET (no default: a missing value is an error).
+
+Usage (cmd, venv active, after load_env so LAKE_BUCKET and AWS_PROFILE are set):
     python verify_backfill.py 2026-07-01 2026-09-28
 """
+import os
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
 
 import boto3
 
-BUCKET = "project-battery-optimizer-lake"
+
+def lake_bucket():
+    """Read at call time. Own copy (not imported from ingest.py): this script is
+    mounted into Airflow on its own."""
+    bucket = os.environ.get("LAKE_BUCKET")
+    if not bucket:
+        raise RuntimeError("LAKE_BUCKET is not set")
+    return bucket
 
 # What every delivery date must have. 4 elpris zones + 2 SvK sources = 6.
 EXPECTED = [
@@ -77,12 +86,13 @@ def find_gaps(keys, start, end):
     return gaps
 
 
-def list_raw_keys():
+def list_raw_keys(bucket=None):
     """All keys under raw/. A paginator is needed: S3 returns max 1000 per call,
     and 90 days x 6 folders x 3 files = ~1,600 keys."""
+    bucket = bucket or lake_bucket()          # fails before any AWS call if unset
     s3 = boto3.client("s3")
     paginator = s3.get_paginator("list_objects_v2")
-    for page in paginator.paginate(Bucket=BUCKET, Prefix="raw/"):
+    for page in paginator.paginate(Bucket=bucket, Prefix="raw/"):
         for obj in page.get("Contents", []):
             yield obj["Key"]
 
