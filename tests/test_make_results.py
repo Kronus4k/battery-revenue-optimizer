@@ -129,3 +129,44 @@ def test_no_chart_subtitle_contains_a_comma():
     assert set(subtitles) == {"a_vs_b", "monthly", "winners"}
     for name, text in subtitles.items():
         assert "," not in text, name
+
+
+# --- README TL;DR: the bullets with numbers are generated --------------------
+from scripts.make_results import tldr_md  # noqa: E402
+
+TLDR_SUMMARY = [
+    {"zone": "SE1", "arbitrage": 56.7, "a_best": 542.4, "b_ceiling": 717.6, "gain_pct": 32},
+    {"zone": "SE3", "arbitrage": 141.2, "a_best": 434.0, "b_ceiling": 1031.6, "gain_pct": 138},
+]
+TLDR_WINNERS = [
+    {"zone": "SE1", "strategy": "mfrr_down", "days_won": 82},
+    {"zone": "SE1", "strategy": "fcr_n", "days_won": 56},
+    {"zone": "SE1", "strategy": "arbitrage", "days_won": 1},
+    {"zone": "SE3", "strategy": "fcr_n", "days_won": 136},
+    {"zone": "SE3", "strategy": "arbitrage", "days_won": 3},
+]
+
+
+def test_tldr_bullets_are_computed_from_the_data():
+    lines = tldr_md(TLDR_SUMMARY, TLDR_WINNERS, 139, "2026-07-01", "2026-11-16").splitlines()
+    assert lines == [
+        "- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), a 1 MW / 2 MWh "
+        "battery earned 434–542 EUR per day depending on zone, 3–10 times as much as spot arbitrage alone "
+        "(139 days, 2026-07-01 → 2026-11-16). → [Results](#results)",
+        "- **One product leads in each zone.** Most often mFRR down in SE1; FCR-N in SE3. Arbitrage was "
+        "the best choice on at most 3 of 139 days in any zone. → [Which strategy wins](docs/results.md#which-strategy-wins)",
+        "- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of charge. "
+        "It is 32–138 % above A, widest in SE3. No real battery can earn it; it marks the room for an "
+        "optimiser (Phase 2). → [Definitions](docs/results.md#definitions)",
+    ]
+
+
+def test_tldr_groups_zones_that_share_a_winner():
+    winners = TLDR_WINNERS + [{"zone": "SE2", "strategy": "fcr_n", "days_won": 100}]
+    summary = TLDR_SUMMARY + [{"zone": "SE2", "arbitrage": 61.5, "a_best": 456.4, "b_ceiling": 693.3, "gain_pct": 52}]
+    assert "Most often mFRR down in SE1; FCR-N in SE2 and SE3." in tldr_md(summary, winners, 139, "a", "b")
+
+
+def test_tldr_does_not_claim_reserves_win_when_arbitrage_is_ahead():
+    summary = TLDR_SUMMARY + [{"zone": "SE4", "arbitrage": 900.0, "a_best": 900.0, "b_ceiling": 950.0, "gain_pct": 6}]
+    assert "Reserves beat arbitrage" not in tldr_md(summary, TLDR_WINNERS, 139, "a", "b")

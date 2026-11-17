@@ -1,8 +1,20 @@
 # Battery Revenue Optimizer
 
-A data platform that backtests, for every Swedish bidding zone and every day, whether a 1 MW / 2 MWh battery would have earned more from spot-price arbitrage or from frequency reserve markets (FCR-N, FCR-D up/down, mFRR up/down). It also computes a theoretical ceiling for mixing strategies quarter by quarter, ignoring state of charge. Python ingestion on AWS Lambda lands raw market data in S3, Airflow orchestrates, dbt models it in Postgres, and a Flask API serves the result.
+A data platform that backtests, for every Swedish bidding zone and every day, whether a 1 MW / 2 MWh battery would have earned more from spot-price arbitrage or from frequency reserve markets (FCR-N, FCR-D up/down, mFRR up/down). Python on AWS Lambda lands raw market data in S3, Airflow orchestrates, dbt models it in Postgres, and a Flask API serves the result.
 
-[![Battery Revenue Optimizer architecture](docs/images/architecture.svg)](docs/images/architecture.svg)
+## TL;DR
+
+<!-- results:tldr:start -->
+- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), a 1 MW / 2 MWh battery earned 434–796 EUR per day depending on zone, 3–10 times as much as spot arbitrage alone (139 days, 2026-07-01 → 2026-11-16). → [Results](#results)
+- **One product leads in each zone.** Most often mFRR down in SE1; FCR-N in SE2 and SE3; mFRR up in SE4. Arbitrage was the best choice on at most 3 of 139 days in any zone. → [Which strategy wins](docs/results.md#which-strategy-wins)
+- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of charge. It is 32–138 % above A, widest in SE3. No real battery can earn it; it marks the room for an optimiser (Phase 2). → [Definitions](docs/results.md#definitions)
+- **Reproducible from raw data.** The data lake was rebuilt from scratch in a new AWS account and the results for the first 99 days came out identical; one script generates every table and chart from the warehouse. → [How to reproduce](docs/results.md#how-to-reproduce)
+- **Serverless and keyless.** Lambda and S3 managed by Terraform, sign-in through SSO with no long-lived keys, estimated at well under USD 1 per month. → [Security](#security), [Cost](#cost)
+<!-- results:tldr:end -->
+
+[![Grouped bars per zone in EUR per day: arbitrage only (grey), strategy A (solid navy) and ceiling B (outlined), each labelled with its value. In every zone A is several times arbitrage, and B is highest in SE4 and SE3.](docs/images/results_a_vs_b.svg)](docs/images/results_a_vs_b.svg)
+
+*Average EUR per day per zone: arbitrage only, the daily-commitment backtest A and the theoretical ceiling B.*
 
 ## The business question
 
@@ -38,11 +50,21 @@ This is a **retrospective backtest with perfect foresight**, not a forecast. Eve
 SE1 mFRR up: 3,245 of 3,337 hours published (10 days with gaps). Unpublished hours count as 0 revenue.
 <!-- results:coverage:end -->
 
+[![Stacked horizontal bars per zone showing on how many days each strategy was the best single choice; large segments are labelled with the product and the number of days. FCR-N dominates SE2 and SE3, mFRR down SE1 and mFRR up SE4; arbitrage almost never wins.](docs/images/results_winners.svg)](docs/images/results_winners.svg)
+
+*On how many days each product was the best single choice, per zone.*
+
+[![Four panels side by side, one per zone, July to November: strategy A as a solid line with dots, ceiling B as a dashed line, both labelled with their last value. In SE3 the ceiling rises through the autumn while A stays between about 360 and 560 EUR per day; in SE4 both rise in October.](docs/images/results_monthly.svg)](docs/images/results_monthly.svg)
+
+*A (solid) against the ceiling B (dashed), month by month per zone; the last month can be partial.*
+
 Reserve capacity payments beat spot arbitrage in every zone: strategy A earns 3 to 10 times as much as arbitrage alone. The ranking is stable: each zone's best reserve product and the order of zones (SE4, SE1, SE2, SE3) are the same as in the first 99 days to 2026-10-07, while A fell 4–9 % in SE1–SE3 and rose 11 % in SE4. The gap between A and the ceiling widened most in SE3 as daily spot spreads grew (76 → 180 EUR/MWh on average from July to the first half of November); B ignores state of charge, so it widens with volatility by construction, and how much a real, state-of-charge-constrained optimiser could capture is the Phase 2 question (optimiser C). All figures assume perfect foresight and count capacity payments only; they are backtest results, not expected revenue.
 
-Method, assumptions, caveats and charts: [docs/results.md](docs/results.md).
+Method, assumptions, caveats and monthly figures: [docs/results.md](docs/results.md).
 
 ## How data flows
+
+[![Battery Revenue Optimizer architecture](docs/images/architecture.svg)](docs/images/architecture.svg)
 
 [![Battery Revenue Optimizer data platform layers](docs/images/platform_layers.svg)](docs/images/platform_layers.svg)
 
