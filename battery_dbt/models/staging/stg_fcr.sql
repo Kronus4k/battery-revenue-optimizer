@@ -35,6 +35,18 @@ hours as (
            (delivery_date::timestamp at time zone 'Europe/Stockholm')
                + (hour_index - 1) * interval '1 hour' as ts_utc
     from data_rows
+),
+
+flagged as (
+    -- The repeated October hour: its local wall time equals the previous hour's
+    -- (02:00 CET after 02:00 CEST). Mimer labels it '02:01:00' in Datum (seen in
+    -- the 2026-10-25 file); datum_local maps that label back to '02:00:00' on
+    -- this row only, so the Datum cross-check test still catches anything else.
+    -- Not yet proven: Mimer's labelling on the spring DST day (23 hours).
+    select *,
+           (ts_utc at time zone 'Europe/Stockholm')
+               = ((ts_utc - interval '1 hour') at time zone 'Europe/Stockholm') as is_repeated_hour
+    from hours
 )
 
 select
@@ -43,6 +55,11 @@ select
     h.ts_utc,
     h.ts_utc at time zone 'Europe/Stockholm'                                 as ts_local,
     split_part(h.line, ';', 1)                                               as datum_text,
+    case when h.is_repeated_hour
+         then regexp_replace(split_part(h.line, ';', 1), ':01:00$', ':00:00')
+         else split_part(h.line, ';', 1)
+    end                                                                      as datum_local,
+    h.is_repeated_hour,
     h.hour_index,
     v.product,
     -- One market price per product (same for every zone); decimal comma -> point.
@@ -51,7 +68,7 @@ select
     -- Kept only for the column-mapping test: SE1..SE4 + DK2 must equal Total.
     replace(split_part(h.line, ';', v.total_pos),  ',', '.')::numeric       as product_total_mw,
     replace(split_part(h.line, ';', v.dk2_pos),    ',', '.')::numeric       as dk2_volume_mw
-from hours h
+from flagged h
 cross join lateral (values
     -- product,      zone,  price, volume, total, dk2   (CSV field positions)
     ('fcr_n',      'SE1',  2,  4,  3,  8),
