@@ -112,3 +112,20 @@ def test_title_winners_states_how_rarely_arbitrage_wins():
     assert title_winners(winners, 139) == (
         "A reserve product is the best choice on almost every day; arbitrage wins at most 3 of 139"
     )
+
+
+# --- chart subtitles: no commas (style rule) ---------------------------------
+from scripts.make_results import chart_subtitles, chart_window  # noqa: E402
+
+
+def test_chart_window_has_no_commas():
+    assert chart_window("2026-07-01", "2026-11-16", "2026-11-17", 139) == (
+        "139 days · 2026-07-01 → 2026-11-16 · data as of 2026-11-17"
+    )
+
+
+def test_no_chart_subtitle_contains_a_comma():
+    subtitles = chart_subtitles(chart_window("2026-07-01", "2026-11-16", "2026-11-17", 139))
+    assert set(subtitles) == {"a_vs_b", "monthly", "winners"}
+    for name, text in subtitles.items():
+        assert "," not in text, name

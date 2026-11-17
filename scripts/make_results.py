@@ -61,6 +61,21 @@ def window_label(start, end, as_of, days):
     return f"{days} days, {start} → {end}, data as of {as_of}"
 
 
+def chart_window(start, end, as_of, days):
+    """The window for chart subtitles: same facts, no commas (chart style rule)."""
+    return f"{days} days · {start} → {end} · data as of {as_of}"
+
+
+def chart_subtitles(window):
+    """Subtitles of the three charts; they never contain a comma."""
+    return {
+        "a_vs_b": f"Average revenue in EUR per day · {window}",
+        "monthly": ("Monthly average in EUR per day · A: daily-commitment backtest (solid) · "
+                    f"B: theoretical upper bound (dashed)\n{window}"),
+        "winners": f"Days on which each strategy was the best single choice · {window}",
+    }
+
+
 def summary_table_md(rows):
     lines = [SUMMARY_HEADER, "| --- | --- | --- | --- | --- | --- |"]
     for r in rows:
@@ -242,7 +257,7 @@ def _save(fig, name):
     return path
 
 
-def chart_a_vs_b(summary, label):
+def chart_a_vs_b(summary, subtitle):
     plt = _pyplot()
     zones = [r["zone"] for r in summary]
     series = [   # name, key, fill, edge
@@ -263,11 +278,11 @@ def chart_a_vs_b(summary, label):
     ax.set_yticks([])
     ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=3, fontsize=8.5,
               handlelength=1.2, columnspacing=1.4)
-    _frame(fig, title_a_vs_b(summary), f"Average revenue, EUR per day · {label}")
+    _frame(fig, title_a_vs_b(summary), subtitle)
     return _save(fig, "results_a_vs_b.svg")
 
 
-def chart_monthly(monthly, label):
+def chart_monthly(monthly, subtitle):
     plt = _pyplot()
     zones = sorted({r["zone"] for r in monthly})
     months = sorted({r["month"] for r in monthly})
@@ -283,7 +298,8 @@ def chart_monthly(monthly, label):
         b = [float(rows[m]["b_ceiling"]) for m in months]
         ax.plot(x, b, "--", color=BLUE, linewidth=1.6)
         ax.plot(x, a, "-", color=NAVY, linewidth=2.2, marker="o", markersize=3.5)
-        for series, vals, colour, dy in (("B", b, BLUE, 6), ("A", a, NAVY, -12)):
+        # Both end labels sit above their line, never on the x axis.
+        for series, vals, colour, dy in (("B", b, BLUE, 6), ("A", a, NAVY, 6)):
             ax.annotate(f"{series} {vals[-1]:,.0f}", (x[-1], vals[-1]), xytext=(4, dy),
                         textcoords="offset points", fontsize=8, color=colour, fontweight="bold")
         ax.set_title(z, loc="left", fontsize=10.5, fontweight="bold", color=INK)
@@ -292,13 +308,11 @@ def chart_monthly(monthly, label):
         ax.grid(axis="y", color="#E6E9ED", linewidth=0.8)
         ax.set_xlim(-0.3, len(months) - 0.3)
     axes[0].tick_params(axis="y", labelsize=8)
-    _frame(fig, title_monthly(monthly),
-           "Monthly average, EUR per day · A: daily-commitment backtest (solid) · "
-           "B: theoretical upper bound (dashed)\n" + label)
+    _frame(fig, title_monthly(monthly), subtitle)
     return _save(fig, "results_monthly.svg")
 
 
-def chart_winners(winners, zones, strategies, n_days, label):
+def chart_winners(winners, zones, strategies, n_days, subtitle):
     plt = _pyplot()
     days = {(r["zone"], r["strategy"]): int(r["days_won"]) for r in winners}
     # Biggest overall winner first, arbitrage last.
@@ -325,8 +339,7 @@ def chart_winners(winners, zones, strategies, n_days, label):
     ax.tick_params(axis="y", length=0, labelsize=10, labelcolor=INK)
     ax.legend(frameon=False, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=len(order), fontsize=8,
               handlelength=1.0, columnspacing=1.2)
-    _frame(fig, title_winners(winners, n_days),
-           f"Days on which each strategy was the best single choice, of {n_days} · {label}")
+    _frame(fig, title_winners(winners, n_days), subtitle)
     return _save(fig, "results_winners.svg")
 
 # ---------------------------------------------------------------------------
@@ -385,8 +398,9 @@ def main(argv=None):
         "monthly": monthly_md(monthly),
         "winners": winners_md(winners, zones, strategies),
     })
-    for path in (chart_a_vs_b(summary, label), chart_monthly(monthly, label),
-                 chart_winners(winners, zones, strategies, n_days, label)):
+    subs = chart_subtitles(chart_window(args.start, args.end, args.as_of, n_days))
+    for path in (chart_a_vs_b(summary, subs["a_vs_b"]), chart_monthly(monthly, subs["monthly"]),
+                 chart_winners(winners, zones, strategies, n_days, subs["winners"])):
         print(f"wrote {path.relative_to(ROOT).as_posix()}")
     print(label)
     print(summary_table_md(summary))

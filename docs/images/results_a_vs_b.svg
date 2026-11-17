@@ -240,7 +240,7 @@ z
    <text style="font-weight: 700; font-size: 12.5px; font-family: 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1a1a1a" x="6.192" y="14.392342" transform="rotate(-0 6.192 14.392342)">Strategy A earns 3–10 times as much as arbitrage alone in every zone</text>
   </g>
   <g id="text_21">
-   <text style="font-size: 9.5px; font-family: 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #5f6670" x="6.192" y="33.37626" transform="rotate(-0 6.192 33.37626)">Average revenue, EUR per day · 139 days, 2026-07-01 → 2026-11-16, data as of 2026-11-17</text>
+   <text style="font-size: 9.5px; font-family: 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #5f6670" x="6.192" y="33.37626" transform="rotate(-0 6.192 33.37626)">Average revenue in EUR per day · 139 days · 2026-07-01 → 2026-11-16 · data as of 2026-11-17</text>
   </g>
   <g id="text_22">
    <text style="font-size: 7.5px; font-family: 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #5f6670" x="6.192" y="347.693484" transform="rotate(-0 6.192 347.693484)">Source: elprisetjustnu.se; Svenska kraftnät (Mimer, SVK Data Service); own backtest. 1 MW / 2 MWh battery, round-trip efficiency 0.85, perfect foresight, capacity payments only.</text>
