@@ -227,6 +227,57 @@ def title_winners(winners, n_days):
     return "Days on which each strategy was the best single choice"
 
 
+def _join(items):
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def tldr_md(summary, winners, n_days, start, end):
+    """The README TL;DR bullets that contain numbers; computed, never typed."""
+    a = [float(r["a_best"]) for r in summary]
+    ratios = [float(r["a_best"]) / float(r["arbitrage"]) for r in summary if float(r["arbitrage"]) > 0]
+    span = f"{min(a):,.0f}–{max(a):,.0f} EUR per day depending on zone"
+    window = f"({n_days} days, {start} → {end})"
+    if len(ratios) == len(summary) and min(ratios) > 1:
+        first = (f"- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), "
+                 f"a 1 MW / 2 MWh battery earned {span}, {round(min(ratios))}–{round(max(ratios))} times "
+                 f"as much as spot arbitrage alone {window}.")
+    else:
+        first = (f"- **Strategy A against arbitrage.** Committing to one strategy per day (A), "
+                 f"a 1 MW / 2 MWh battery earned {span} {window}.")
+    first += " → [Results](#results)"
+
+    leader = {}
+    for z in sorted({r["zone"] for r in winners}):
+        rows = [r for r in winners if r["zone"] == z]
+        leader[z] = max(rows, key=lambda r: int(r["days_won"]))["strategy"]
+    groups = {}
+    for z, s in leader.items():            # zone order, so groups appear by their first zone
+        groups.setdefault(s, []).append(z)
+    phrases = [f"{product_label(s)} in {_join(zs)}" for s, zs in groups.items()]
+    arb = max((int(r["days_won"]) for r in winners if r["strategy"] == "arbitrage"), default=0)
+    second = (f"- **One product leads in each zone.** Most often {"; ".join(phrases)}. Arbitrage was the best "
+              f"choice on at most {arb} of {n_days} days in any zone. "
+              "→ [Which strategy wins](docs/results.md#which-strategy-wins)")
+
+    gains = {r["zone"]: int(r["gain_pct"]) for r in summary}
+    third = (f"- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of "
+             f"charge. It is {min(gains.values())}–{max(gains.values())} % above A, widest in "
+             f"{max(gains, key=gains.get)}. No real battery can earn it; it marks the room for an optimiser "
+             "(Phase 2). → [Definitions](docs/results.md#definitions)")
+    return "\n".join([first, second, third])
+
+
+# Fixed TL;DR bullets (no data in them). They live here so the whole list sits
+# inside one marker block; a marker between list items would split the list.
+TLDR_FIXED = (
+    "- **Reproducible from raw data.** The data lake was rebuilt from scratch in a new AWS account and the "
+    "results for the first 99 days came out identical; one script generates every table and chart from the "
+    "warehouse. → [How to reproduce](docs/results.md#how-to-reproduce)\n"
+    "- **Serverless and keyless.** Lambda and S3 managed by Terraform, sign-in through SSO with no long-lived "
+    "keys, estimated at well under USD 1 per month. → [Security](#security), [Cost](#cost)"
+)
+
+
 def _pyplot():
     import matplotlib
     matplotlib.use("Agg")
@@ -391,7 +442,8 @@ def main(argv=None):
         "summary": summary_table_md(summary),
         "coverage": coverage_md(coverage),
     }
-    write_markers(ROOT / "README.md", common)
+    write_markers(ROOT / "README.md", {
+        **common, "tldr": tldr_md(summary, winners, n_days, args.start, args.end) + "\n" + TLDR_FIXED})
     write_markers(ROOT / "docs" / "results.md", {
         **common,
         "comparison": comparison_md(compare, summary, old_days, n_days),
