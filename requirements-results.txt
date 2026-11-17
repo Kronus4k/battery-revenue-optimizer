@@ -1,0 +1,15 @@
+# Result charts (scripts/make_results.py) only; not deployed. Install with:
+#   pip install -r requirements-results.txt
+# Exact pins, each released at least 14 days before they were chosen (2026-11-17);
+# resolved with pip --uploaded-prior-to 2026-11-03. psycopg2 comes from requirements-local.txt.
+matplotlib==3.11.2
+contourpy==1.4.0
+cycler==0.12.1
+fonttools==4.68.0
+kiwisolver==1.5.1
+numpy==2.5.4
+packaging==26.3
+pillow==13.0.0
+pyparsing==3.3.3
+python-dateutil==2.9.0.post0
+six==1.17.0
