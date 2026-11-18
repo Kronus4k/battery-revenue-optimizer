@@ -1,14 +1,13 @@
 """
 ingest_elpris: tomorrow's day-ahead spot prices, every day at 13:30 Stockholm.
-(Day 2, step 2.7)
 
 Nord Pool publishes day-ahead prices ~13:00. elprisetjustnu.se mirrors them
-shortly after, so at 13:30 we fetch delivery date = TOMORROW (offset +1).
+shortly after, so at 13:30 we fetch delivery date = tomorrow (offset +1).
 If they're late, the source returns an error -> task fails -> retries every
-15 min until ~15:00. A freshness alert at 14:00 comes on Day 4 (step 3).
+15 min until ~15:00. monitor_freshness checks at 15:30 that the data arrived.
 
-Day 4 (D4.2): the fetch task now declares RAW_ELPRIS as an outlet. When it
-SUCCEEDS, Airflow records an asset event and the transform DAG runs.
+The fetch task declares RAW_ELPRIS as an outlet. When it
+succeeds, Airflow records an asset event and the transform DAG runs.
 If all retries fail, no event -> transform does not run on missing data.
 """
 from datetime import timedelta

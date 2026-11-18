@@ -1,4 +1,4 @@
-# Remote state in our OWN bucket (created by infra/bootstrap/create_state_bucket.cmd),
+# Remote state in the project's own bucket (created by infra/bootstrap/create_state_bucket.cmd),
 # never Slussen's. Native S3 locking (use_lockfile), no DynamoDB table.
 # Bucket and profile are supplied at init time, not committed:
 #   terraform init -backend-config="bucket=battery-optimizer-tfstate-<suffix>" -backend-config="profile=battery-optimizer"

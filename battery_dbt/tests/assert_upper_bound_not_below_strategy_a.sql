@@ -1,4 +1,4 @@
--- B is a CEILING: on every zone/day it must be >= the best strategy-A revenue.
+-- B is a ceiling: on every zone/day it must be >= the best strategy-A revenue.
 -- Fails if B is below A anywhere (logic error, so B is not a valid bound),
 -- or if a day that A covers is missing from B (gap in coverage).
 select a.bidding_zone, a.delivery_date,

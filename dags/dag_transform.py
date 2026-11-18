@@ -1,8 +1,7 @@
 """
-transform: raw lake -> warehouse -> dbt models, triggered by DATA, not time.
-(Day 4, D4.2)
+transform: raw lake -> warehouse -> dbt models, triggered by data, not time.
 
-Runs whenever EITHER ingest DAG successfully updates its Asset:
+Runs whenever either ingest DAG successfully updates its Asset:
   ingest_svk    (10:00) -> RAW_SVK    -> transform
   ingest_elpris (13:30) -> RAW_ELPRIS -> transform
 A failed fetch records no asset event, so transform never runs on missing data.
@@ -11,7 +10,7 @@ Tasks:
   load_raw   S3 raw files for a rolling window of delivery dates -> raw.landing_files
              (idempotent upsert: unchanged files are a no-op)
   dbt_build  staging -> intermediate -> marts, tests run after each model;
-             a failing test SKIPS everything downstream, so the marts keep
+             a failing test skips everything downstream, so the marts keep
              their last good version.
 
 Manual runs (Trigger with config) can override the window, e.g. after a
@@ -26,13 +25,13 @@ from battery_assets import RAW_ELPRIS, RAW_SVK
 from battery_common import MARKET_TZ, load_window
 
 LOAD_RAW = "/opt/airflow/scripts/load_raw.py"        # mounted read-only (compose)
-DBT = "/opt/dbt-venv/bin/dbt"                        # venv baked into the image (D4.1)
+DBT = "/opt/dbt-venv/bin/dbt"                        # venv baked into the image (Dockerfile)
 DBT_PROJECT = "/opt/airflow/battery_dbt"             # mounted read-only (compose)
 
 
 @dag(
     dag_id="transform",
-    # Asset expression: run when RAW_ELPRIS OR RAW_SVK is updated.
+    # Asset expression: run when RAW_ELPRIS or RAW_SVK is updated.
     schedule=(RAW_ELPRIS | RAW_SVK),
     start_date=pendulum.datetime(2026, 10, 1, tz="Europe/Stockholm"),
     catchup=False,
@@ -41,7 +40,7 @@ DBT_PROJECT = "/opt/airflow/battery_dbt"             # mounted read-only (compos
     params={
         # None (left empty) = use the rolling window. Set both for a manual range.
         # ["null", "string"]: the UI treats "" as missing, so None must be allowed
-        # explicitly. The pattern rejects typos (e.g. 2026-1-1) BEFORE the run.
+        # explicitly. The pattern rejects typos (e.g. 2026-1-1) before the run.
         "start": Param(None, type=["null", "string"], pattern=r"^\d{4}-\d{2}-\d{2}$",
                        description="YYYY-MM-DD, empty = rolling window"),
         "end": Param(None, type=["null", "string"], pattern=r"^\d{4}-\d{2}-\d{2}$",
@@ -53,7 +52,7 @@ def transform():
 
     @task.bash
     def load_raw(params=None):
-        # Python runs first (in Airflow) and RETURNS the shell command to run.
+        # Python runs first (in Airflow) and returns the shell command to run.
         start, end = params.get("start"), params.get("end")
         if not (start and end):
             # Asset-triggered runs have no logical date in Airflow 3, so the

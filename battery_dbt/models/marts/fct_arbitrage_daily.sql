@@ -1,7 +1,7 @@
 -- fct_arbitrage_daily: strategy A, arbitrage leg. Best single charge/discharge
 -- cycle per zone and day, on 15-minute spot prices (perfect foresight).
 --
--- Rules (README "Simplifications"):
+-- Rules (see README "Limitations"):
 --   * charge for n consecutive quarters at full power, then discharge for n
 --     consecutive quarters at full power, discharge starting after charging ends
 --   * same delivery day only (no overnight cycle), at most one cycle per day

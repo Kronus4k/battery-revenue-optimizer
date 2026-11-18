@@ -1,9 +1,8 @@
 """
-Unit tests for dags/battery_common.py (Day 2, step 2.8d).
+Unit tests for dags/battery_common.py.
 
-Each test name says WHAT behaviour is protected. Several tests encode bugs or
-traps found during Day 2 (see day2_interview_notes.md), so they can never
-silently come back.
+Each test name says what behaviour is protected. Several tests encode bugs
+that were found and fixed, so they can never silently come back.
 """
 from datetime import datetime
 
@@ -32,7 +31,7 @@ def utc(s):
 @pytest.mark.parametrize(
     "logical_utc, offset, expected",
     [
-        # Note 2.7: midnight Stockholm is 22:00 UTC the day BEFORE (summer).
+        # Midnight Stockholm is 22:00 UTC the day before (summer time).
         ("2026-09-26T22:00:00+00:00", 0, "2026-09-27"),
         # Winter time is UTC+1.
         ("2026-12-14T23:30:00+00:00", 0, "2026-12-15"),
@@ -40,7 +39,7 @@ def utc(s):
         ("2026-09-27T12:00:00+00:00", 0, "2026-09-27"),
         # DST switch day (25-hour day): still the right calendar date.
         ("2026-10-25T00:00:00+00:00", 0, "2026-10-25"),
-        # Publication offsets (Note 2.11).
+        # Publication offsets: elpris = tomorrow (+1), SvK = yesterday (-1).
         ("2026-09-30T11:30:00+00:00", +1, "2026-10-01"),  # elpris 13:30 -> tomorrow
         ("2026-09-30T08:00:00+00:00", -1, "2026-09-29"),  # svk 10:00 -> yesterday
         # Year rollover.
@@ -66,7 +65,7 @@ def test_find_failures_network_error_is_none():
 
 
 def test_find_failures_empty_nested_dict_is_failure():
-    # Drill finding (Day 2, 50% mark): this used to return [] -> green with no prices.
+    # This used to return [] -> a green run with no prices.
     assert find_failures({"elpris": {}}) == ["elpris=EMPTY"]
 
 
@@ -101,6 +100,5 @@ def test_check_response_empty_body():
 
 # ---------------------------------------------------------------- Lambda name
 def test_lambda_name_is_the_terraform_managed_function():
-    # Migration Phase 4 (T2): the old account's Lambda is gone.
     # Must match function_name in infra/terraform/lambda.tf.
     assert LAMBDA_NAME == "battery-optimizer-ingest"

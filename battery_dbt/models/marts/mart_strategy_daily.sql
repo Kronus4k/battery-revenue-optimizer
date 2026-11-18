@@ -1,6 +1,6 @@
 -- mart_strategy_daily: strategy A result. Per zone and day, the revenue of each
 -- of the 6 single-strategy choices (arbitrage + 5 reserve products) and the winner.
--- Perfect foresight: an upper estimate, not expected revenue (Note 3.1).
+-- Perfect foresight: an upper estimate, not expected revenue.
 
 with arbitrage as (
     select bidding_zone, delivery_date, 'arbitrage' as strategy,
@@ -15,7 +15,7 @@ reserves as (
 ),
 
 complete_days as (
-    -- Only days where BOTH spot and reserve data exist (elpris runs a day ahead
+    -- Only days where both spot and reserve data exist (elpris runs a day ahead
     -- of SvK), so every strategy is compared on exactly the same days.
     select distinct a.bidding_zone, a.delivery_date
     from arbitrage a

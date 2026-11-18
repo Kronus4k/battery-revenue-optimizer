@@ -1,4 +1,4 @@
--- WARN (not error): lists zone/direction/days with FEWER rows than the real
+-- WARN (not error): lists zone/direction/days with fewer rows than the real
 -- number of hours in that local day.
 -- Why warn: the SVK Data Service omits some hours instead of publishing them.
 -- Seen for SE1 up only, from 2026-10-16 (e.g. 2026-10-17: 5 of 24 hours), still

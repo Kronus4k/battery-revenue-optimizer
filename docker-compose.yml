@@ -1,29 +1,28 @@
 # =============================================================================
-# Battery Revenue Optimizer - local Airflow (Day 2, step 2.1) + warehouse (Day 3)
+# Battery Revenue Optimizer - local Airflow + data warehouse
 #
 # What this runs:
-#   postgres           -> Airflow's METADATA database (DAG runs, task states,
-#                          retries). NOT our data; see "warehouse" below.
-#   warehouse          -> OUR data warehouse (Day 3): dbt builds staging and
-#                          marts here, Flask reads from here (Day 4).
+#   postgres           -> Airflow's metadata database (DAG runs, task states,
+#                          retries). Not project data; see "warehouse" below.
+#   warehouse          -> the project's data warehouse: dbt builds staging and
+#                          marts here, the Flask API reads from here.
 #                          Separate server, user and volume from "postgres".
 #   airflow-init       -> one-shot job: migrates the metadata DB, creates the
 #                          admin login, then exits. Everything else waits for it.
 #   airflow-apiserver  -> the UI + REST API on http://localhost:8080
-#   airflow-scheduler  -> decides WHICH task runs WHEN, and runs it
+#   airflow-scheduler  -> decides which task runs when, and runs it
 #                          (LocalExecutor = tasks run as subprocesses here)
 #   airflow-dag-processor -> parses files in ./dags into DAG objects
 #
 # Why LocalExecutor (not Celery like the official compose file)?
 #   Celery needs Redis + worker containers: more RAM, more moving parts.
 #   One laptop, a few tasks per day -> LocalExecutor is enough.
-#   Interview line: "I chose the smallest executor that fits the workload."
 # =============================================================================
 
 # ---- Shared settings, reused by every Airflow service via YAML anchors ------
 x-airflow-common: &airflow-common
-  # Day 4: our own image = official Airflow 3.0.6 + dbt venv (Dockerfile, D4.1).
-  # NEW name on purpose: with build + image, compose saves the built image
+  # Own image = official Airflow 3.0.6 + a dbt virtualenv (see Dockerfile).
+  # A new name on purpose: with build + image, compose saves the built image
   # under this name; reusing "apache/airflow:3.0.6" would overwrite the
   # official image locally.
   build: .
@@ -41,14 +40,14 @@ x-airflow-common: &airflow-common
     AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
     # Classic username/password login (FAB auth manager).
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
-    # New DAGs start PAUSED: nothing fires (e.g. a 90-day catch-up) by accident.
+    # New DAGs start paused: nothing fires (e.g. a 90-day catch-up) by accident.
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
     # No example DAGs cluttering the UI.
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     # Display times in our market's local time (storage stays UTC).
     AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Stockholm
     AIRFLOW__WEBSERVER__DEFAULT_UI_TIMEZONE: Europe/Stockholm
-    # AWS credentials: NO keys (migration Phase 4, same pattern as Slussen).
+    # AWS credentials: no access keys.
     # boto3 reads the profile battery-optimizer-airflow from the mounted
     # ~/.aws/config: it assumes the IAM role of that name from the SSO session
     # (invoke the Lambda, list/read raw/* only). Requires a live
@@ -58,15 +57,15 @@ x-airflow-common: &airflow-common
     AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-eu-north-1}
     # Lake bucket for load_raw / verify_backfill (no default in the code).
     LAKE_BUCKET: ${LAKE_BUCKET:?set LAKE_BUCKET in .env}
-    # Day 4: warehouse access for the load_raw and dbt tasks.
+    # Warehouse access for the load_raw and dbt tasks.
     # Inside Docker the warehouse is service name + container port,
-    # NOT 127.0.0.1:5433 (that port exists only on the Windows side).
+    # not 127.0.0.1:5433 (that port exists only on the Windows side).
     WAREHOUSE_HOST: warehouse
     WAREHOUSE_PORT: "5432"
     WAREHOUSE_USER: ${WAREHOUSE_USER}
     WAREHOUSE_PASSWORD: ${WAREHOUSE_PASSWORD}
     WAREHOUSE_DB: ${WAREHOUSE_DB:-battery}
-    # dbt reads the profile from the mounted project, but writes ALL output
+    # dbt reads the profile from the mounted project, but writes all output
     # to /tmp, so the project can be mounted read-only (tested on dbt 1.12.5).
     DBT_PROFILES_DIR: /opt/airflow/battery_dbt
     DBT_TARGET_PATH: /tmp/dbt/target
@@ -78,11 +77,11 @@ x-airflow-common: &airflow-common
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
     - ./config:/opt/airflow/config
-    # Day 4: code for the load/transform tasks, mounted READ-ONLY (:ro).
+    # Code for the load/transform tasks, mounted read-only (:ro).
     - ./battery_dbt:/opt/airflow/battery_dbt:ro
     - ./load_raw.py:/opt/airflow/scripts/load_raw.py:ro
     - ./verify_backfill.py:/opt/airflow/scripts/verify_backfill.py:ro
-    # AWS profile config, READ-ONLY. The SSO token cache must be WRITABLE:
+    # AWS profile config, read-only. The SSO token cache must be writable:
     # botocore refreshes the token there. No credentials file is used.
     - ${USERPROFILE:?USERPROFILE is not set}/.aws:/home/airflow/.aws:ro
     - ${USERPROFILE:?USERPROFILE is not set}/.aws/sso/cache:/home/airflow/.aws/sso/cache
@@ -100,7 +99,7 @@ services:
       POSTGRES_DB: airflow
     volumes:
       # Named volume: run history survives "docker compose down".
-      # "docker compose down -v" wipes it (a break-it experiment later).
+      # "docker compose down -v" wipes it.
       - airflow-db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
@@ -108,10 +107,10 @@ services:
       retries: 5
     restart: unless-stopped
 
-  # ---- Day 3: our data warehouse ---------------------------------------------
-  # dbt builds staging/marts here; Flask reads from here (Day 4).
+  # ---- Data warehouse ---------------------------------------------------------
+  # dbt builds staging/marts here; the Flask API reads from here.
   # Deliberately separate from Airflow's metadata DB ("postgres" above), so an
-  # Airflow upgrade or reset can never touch our data.
+  # Airflow upgrade or reset can never touch project data.
   warehouse:
     image: postgres:16                  # pinned major version, same as Airflow's DB
     environment:
@@ -136,8 +135,8 @@ services:
       start_period: 5s
     restart: unless-stopped             # same policy as the other services
 
-  # ---- Day 4: read-only results API (D4.4) ------------------------------------
-  # Own small image (Dockerfile.api); code baked in, NOT mounted: a deployable
+  # ---- Read-only results API ---------------------------------------------------
+  # Own small image (Dockerfile.api); code baked in, not mounted: a deployable
   # artifact. Reads analytics_marts only, as read-only role api_reader.
   api:
     build:
@@ -151,7 +150,7 @@ services:
       API_DB_USER: api_reader
       API_DB_PASSWORD: ${API_READER_PASSWORD:?set API_READER_PASSWORD in .env}
     ports:
-      # gunicorn listens on 0.0.0.0:8000 INSIDE the container; the host
+      # gunicorn listens on 0.0.0.0:8000 inside the container; the host
       # publishes it on 127.0.0.1 only, so only this PC can reach it.
       - "127.0.0.1:5000:8000"
     depends_on:

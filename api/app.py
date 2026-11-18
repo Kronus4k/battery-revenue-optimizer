@@ -1,18 +1,18 @@
 """
-Battery Revenue Optimizer API (Day 4, D4.4).
+Battery Revenue Optimizer API.
 
 GET /recommendation?zone=SE3&date=2026-10-09
-    -> which strategy WOULD have earned most that day (strategy A, perfect
+    -> which strategy would have earned most that day (strategy A, perfect
        foresight), all strategies ranked, and the theoretical ceiling (B).
 GET /health
     -> 200 if the warehouse answers, 503 if not.
 
 Design:
-  - Reads ONLY analytics_marts, as the read-only role api_reader (D4.4).
+  - Reads only analytics_marts, as the read-only role api_reader.
     Its own env vars (API_DB_*), never the WAREHOUSE_* owner credentials.
   - Ranking and the winner come from the mart (revenue_rank, is_winner),
     computed and tested in dbt. The API shapes; it never re-decides.
-  - Labels are LOCKED decisions: A = "daily-commitment backtest (perfect
+  - Labels are fixed wording: A = "daily-commitment backtest (perfect
     foresight)", B = "theoretical upper bound", never "expected revenue".
   - All SQL is parameterised (%s), never string-formatted: user input can't
     become SQL.

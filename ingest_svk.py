@@ -1,5 +1,5 @@
 """
-ingest_svk.py - Step 3: balancing-market prices from Svenska kraftnät
+ingest_svk.py - balancing-market prices from Svenska kraftnät
 
 Two sources, because SvK is mid-migration:
   - FCR (FCR-N, FCR-D up, FCR-D down): Mimer, CSV download.
@@ -7,8 +7,8 @@ Two sources, because SvK is mid-migration:
   - mFRR capacity market: SVK Data Service, JSON API (CKAN datastore_search).
     (Mimer is planned to be decommissioned, so new sources go here.)
 
-Both files contain ALL zones, so they go under zone=ALL (Decision A):
-raw stays exactly as downloaded; dbt splits zones on Day 3.
+Both files contain all zones, so they go under zone=ALL:
+raw stays exactly as downloaded; dbt staging splits the zones.
 
 Run:
     python ingest_svk.py               # today
@@ -27,7 +27,7 @@ import requests
 from ingest import raw_path, write_raw, record_network_error, where
 
 # --- Config ------------------------------------------------------------------
-ZONE_ALL = "ALL"                               # one file holds every zone (Decision A)
+ZONE_ALL = "ALL"                               # one file holds every zone
 
 # FCR on Mimer: the "Spara som CSV" link from the FCR page.
 FCR_SOURCE = "svk_fcr"
@@ -97,7 +97,7 @@ def build_mfrr_url(delivery_date: date) -> str:
         # The API expects the filter as a JSON string inside the URL.
         # separators=(",", ":") drops spaces so the URL stays compact.
         "filters": json.dumps(filters, separators=(",", ":")),
-        # Sort on a UNIQUE combination of columns. Each hour has 8 rows
+        # Sort on a unique combination of columns. Each hour has 8 rows
         # (4 zones x 2 directions); sorting by time alone left their order
         # up to the database, so identical data got a different sha256.
         # time + zone + direction identifies exactly one row -> one fixed order.
@@ -108,9 +108,9 @@ def build_mfrr_url(delivery_date: date) -> str:
 
 
 def records_sha256(records: list) -> str:
-    """CONTENT hash: a fingerprint of the data rows only, in canonical form.
+    """Content hash: a fingerprint of the data rows only, in canonical form.
     Ignores the envelope (e.g. the 'schema' block, whose internal IDs change
-    on every request), so it changes only if the DATA changes.
+    on every request), so it changes only if the data changes.
 
     Canonical = one fixed way to write the same data:
       - sort_keys=True: keys inside each row always in the same order
@@ -124,7 +124,7 @@ def records_sha256(records: list) -> str:
 
 
 def inspect_mfrr(resp: requests.Response) -> dict:
-    """READ the raw answer to check it; never change it.
+    """Read the raw answer to check it; never change it.
     Warns on API failure or cut-off rows. Returns extra meta fields."""
     try:
         body = resp.json()

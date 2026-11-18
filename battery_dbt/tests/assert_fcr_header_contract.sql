@@ -1,5 +1,5 @@
 -- Fails if any FCR file's header differs from the layout stg_fcr's field
--- POSITIONS were written for. If SvK reorders/renames columns, the build
+-- positions were written for. If SvK reorders/renames columns, the build
 -- stops here instead of silently mapping prices to the wrong products.
 -- chr(65279) = the BOM, which is part of the contract (known quirk).
 with files as (

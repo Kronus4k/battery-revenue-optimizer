@@ -1,8 +1,7 @@
 """
-monitor_freshness: is the data that SHOULD exist by now actually there?
-(Day 4, D4.3)
+monitor_freshness: is the data that should exist by now actually there?
 
-Why a CLOCK schedule here, when everything else is event-driven?
+Why a clock schedule here, when everything else is event-driven?
   Missing data creates no event. If SvK never publishes, ingest_svk fails,
   no asset event fires, transform never runs, and nothing else turns red.
   Only a check on a clock can notice "nothing happened".
@@ -10,11 +9,10 @@ Why a CLOCK schedule here, when everything else is event-driven?
 Why 15:30 Stockholm?
   After the last retries: SvK retries until ~12:00, elpris until ~15:00.
   An earlier check would alarm on sources that are merely late.
-  (Changed from the original 14:00 plan; D4.3.)
-  NOTE: a MANUAL run before ~15:00 will report tomorrow's elpris as missing.
+  Note: a manual run before ~15:00 will report tomorrow's elpris as missing.
   That is correct for its rules, not a bug.
 
-Two independent checks, so a failure tells you WHERE to look:
+Two independent checks, so a failure tells you where to look:
   check_lake       S3 raw zone, last 7 days + tomorrow, using the same
                    find_gaps() as verify_backfill.py and freshness_problems()
                    for "is it due yet?".   Missing here -> ingestion problem.
@@ -22,8 +20,8 @@ Two independent checks, so a failure tells you WHERE to look:
                    -> load_raw / dbt problem (look at transform runs).
 
 A real data problem raises AirflowFailException: the task fails at once,
-WITHOUT retries (retrying won't make missing data appear). Infrastructure
-errors (S3/DB unreachable) raise normal exceptions and DO get the retry.
+without retries (retrying won't make missing data appear). Infrastructure
+errors (S3/DB unreachable) raise normal exceptions and do get the retry.
 """
 import sys
 from datetime import timedelta
@@ -40,13 +38,13 @@ LOOKBACK_DAYS = 7                  # how far back the lake check looks for gaps
 
 def market_today(context):
     """Market-time 'today' for this run: the scheduled slot if there is one,
-    else now (manual runs). A late catch-up run still checks ITS day."""
+    else now (manual runs). A late catch-up run still checks its own day."""
     when = context.get("logical_date") or pendulum.now("UTC")
     return when.astimezone(MARKET_TZ).date()
 
 
 def import_scripts():
-    """Make the mounted scripts importable for THIS task process only
+    """Make the mounted scripts importable for this task process only
     (no global PYTHONPATH that would affect the scheduler)."""
     if SCRIPTS not in sys.path:
         sys.path.insert(0, SCRIPTS)

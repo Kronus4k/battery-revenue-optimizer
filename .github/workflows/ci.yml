@@ -28,9 +28,9 @@ jobs:
         run: python -m pytest -v
 
   # ---------------------------------------------------------------------------
-  # Day 4 (D4.5): dbt against a THROWAWAY Postgres with an EMPTY landing table.
+  # dbt against a throwaway Postgres with an empty landing table.
   # What it proves: the SQL runs, refs/configs resolve, grants apply, the unit
-  # test (own fixture data) passes. What it does NOT prove: data quality;
+  # tests (own fixture data) pass. What it does not prove: data quality;
   # data tests on empty tables mostly pass trivially. Real-data tests run daily
   # in Airflow (transform). Fixture-based regression tests = Phase 2.
   # Separate job: a broken model and a broken Python function show up as two

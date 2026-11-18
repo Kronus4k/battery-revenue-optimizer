@@ -1,6 +1,6 @@
 # Ingestion Lambda: fetches market data and writes it to raw/ in the lake.
 
-# Created BEFORE the function, so Terraform (not Lambda) owns the log group and
+# Created before the function, so Terraform (not Lambda) owns the log group and
 # its retention, and the role never needs logs:CreateLogGroup.
 resource "aws_cloudwatch_log_group" "ingest" {
   name              = "/aws/lambda/${local.lambda_name}"

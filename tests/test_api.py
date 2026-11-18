@@ -1,5 +1,5 @@
 """
-Tests for api/app.py (Day 4, step 4f). No database needed: the web layer is
+Tests for api/app.py. No database needed: the web layer is
 tested with a fake repo, the logic through its pure functions.
 Values below are the real SE3 rows for 2026-10-09 from the warehouse.
 """
@@ -78,7 +78,7 @@ def test_headroom_is_b_over_a():
 
 
 def test_locked_labels_and_never_expected_revenue():
-    # Locked decision (Day 3): A and B carry these labels; "expected revenue"
+    # A and B always carry these labels; "expected revenue"
     # must never appear, because this is a backtest, not a forecast.
     r = shape_response("SE3", DAY, SE3_ROWS, SE3_UPPER)
     assert r["recommendation"]["label"] == LABEL_A
@@ -106,7 +106,7 @@ def test_bad_zone_is_400_and_never_queries():
     repo = FakeRepo()
     resp = client(repo).get("/recommendation?zone=SE9&date=2026-10-09")
     assert resp.status_code == 400
-    assert repo.calls == []          # invalid input stopped BEFORE the database
+    assert repo.calls == []          # invalid input stopped before the database
 
 
 def test_day_without_data_is_404_with_range():

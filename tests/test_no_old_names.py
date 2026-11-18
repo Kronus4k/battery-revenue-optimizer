@@ -1,9 +1,9 @@
 """
-Guard against names from the LOST AWS account coming back (migration Phase 4, T1).
+Guard against names from the previous AWS account coming back.
 
-The old bucket, Lambda and IAM user no longer exist. Any code, config or doc
+The project no longer uses the old bucket, Lambda and IAM user. Any code, config or doc
 that still names them would either fail or, worse, quietly point at a bucket
-someone else could own. This test scans every TRACKED file (git ls-files, so
+someone else could own. This test scans every tracked file (git ls-files, so
 it also runs in CI) and fails with the exact file:line of each hit.
 
 The only file allowed to contain the patterns is this test itself.

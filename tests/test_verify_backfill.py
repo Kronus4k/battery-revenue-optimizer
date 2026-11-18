@@ -25,7 +25,7 @@ def test_find_gaps_complete_range():
 
 
 def test_find_gaps_whole_day_missing():
-    # Note 2.10: a whole missing day = no run asked for it.
+    # A whole missing day = no run asked for it.
     keys = meta_keys("2026-09-25")
     gaps = find_gaps(keys, date(2026, 9, 24), date(2026, 9, 25))
     assert list(gaps) == ["2026-09-24"]
@@ -33,7 +33,7 @@ def test_find_gaps_whole_day_missing():
 
 
 def test_find_gaps_attempt_without_data_is_a_gap():
-    # Option C: _last_attempt.json alone means "tried, no data".
+    # _last_attempt.json alone means "tried, no data".
     keys = [k for k in meta_keys("2026-09-24") if "zone=SE3" not in k]
     keys.append("raw/source=elpris/zone=SE3/date=2026-09-24/_last_attempt.json")
     assert find_gaps(keys, date(2026, 9, 24), date(2026, 9, 24)) == {"2026-09-24": ["elpris/SE3"]}

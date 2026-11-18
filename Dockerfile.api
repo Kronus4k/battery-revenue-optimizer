@@ -1,4 +1,4 @@
-# API image (Day 4, D4.4): small, non-root, code baked in (deployable artifact).
+# API image: small, non-root, code baked in (deployable artifact).
 FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 RUN useradd --create-home --uid 10001 api

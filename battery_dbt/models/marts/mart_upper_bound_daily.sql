@@ -1,9 +1,9 @@
--- mart_upper_bound_daily: strategy B, a theoretical CEILING per zone and day.
+-- mart_upper_bound_daily: strategy B, a theoretical ceiling per zone and day.
 -- Each 15-min quarter takes the best of: reserve capacity, discharging (bought at
 -- the day's cheapest quarter), or idle. Ignores state of charge, so no real
--- battery can execute it. Computed per QUARTER (not per hour) so it provably
+-- battery can execute it. Computed per quarter (not per hour) so it provably
 -- bounds any 15-min plan, incl. a full optimiser (C) and strategy A (tested).
--- Label: "theoretical upper bound, ignores state of charge" (Note 3.1).
+-- Label: "theoretical upper bound, ignores state of charge".
 
 {% set power = var('battery_power_mw') %}
 {% set eff = var('round_trip_efficiency') %}
