@@ -1,0 +1,7 @@
+{
+  "fetched_at_utc": "2026-11-17T17:53:40.145580+00:00",
+  "file": "response.csv",
+  "http_status": 200,
+  "sha256": "b7e1ab153caabd0b8ab54aea43036a3a57172a1f5e5da35feb6eac28efdec58d",
+  "url": "https://mimer.svk.se/PrimaryRegulation/DownloadText?periodFrom=10%2F25%2F2026+00%3A00%3A00&periodTo=10%2F25%2F2026+00%3A00%3A00&auctionTypeId=1&productTypeId=0"
+}

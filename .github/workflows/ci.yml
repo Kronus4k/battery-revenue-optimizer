@@ -24,15 +24,21 @@ jobs:
       - name: Compile all Python files
         run: python -m compileall -q dags tests api *.py
 
+      - name: ruff check (small rule set in pyproject.toml)
+        run: ruff check .
+
       - name: Run tests
         run: python -m pytest -v
 
   # ---------------------------------------------------------------------------
-  # dbt against a throwaway Postgres with an empty landing table.
-  # What it proves: the SQL runs, refs/configs resolve, grants apply, the unit
-  # tests (own fixture data) pass. What it does not prove: data quality;
-  # data tests on empty tables mostly pass trivially. Real-data tests run daily
-  # in Airflow (transform). Fixture-based regression tests = Phase 2.
+  # dbt against a throwaway Postgres, loaded with real raw files for two days
+  # (tests/fixtures/raw/: 2026-10-09 normal, 2026-10-25 autumn DST day, all
+  # zones), through the same load_raw.py the pipeline uses (--from-dir, no AWS).
+  # What it proves: the SQL runs, contracts and data tests hold on real data,
+  # and the SE3/SE4 mart values match exact expected numbers
+  # (tests/fixture/assert_fixture_values.sql, enabled only by the var below).
+  # What it does not prove: other days; the full history is tested daily in
+  # Airflow (transform).
   # Separate job: a broken model and a broken Python function show up as two
   # different red checks.
   # ---------------------------------------------------------------------------
@@ -68,10 +74,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dbt (same pins as laptop and Airflow image)
+      - name: Install dbt (same pins as laptop and Airflow image) and the loader
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dbt.txt
+          pip install -r requirements-dbt.txt -r requirements.txt -r requirements-local.txt
 
       - name: Create landing table and api_reader role (fresh-setup order)
         # ON_ERROR_STOP=1: without it psql reports errors but still exits 0,
@@ -80,11 +86,14 @@ jobs:
           psql -h localhost -U battery -d battery -v ON_ERROR_STOP=1 -f sql/001_create_landing.sql
           psql -h localhost -U battery -d battery -v ON_ERROR_STOP=1 -v api_password=ci-only-not-a-secret -f sql/002_create_api_reader.sql
 
-      - name: dbt build (SQL runs and contracts hold; empty data)
-        working-directory: battery_dbt
-        run: dbt build
+      - name: Load the raw fixtures into raw.landing_files (local files, no AWS)
+        run: python load_raw.py 2026-10-09 2026-10-25 --from-dir tests/fixtures
 
-      - name: dbt docs (static site; catalog from the empty CI database)
+      - name: dbt build on the fixtures, with the exact-value test
+        working-directory: battery_dbt
+        run: "dbt build --vars '{fixture_values: true}'"
+
+      - name: dbt docs (static site; catalog from the CI database)
         working-directory: battery_dbt
         run: dbt docs generate --static
 

@@ -14,3 +14,7 @@
 # Never touch binary files.
 *.png binary
 *.zip binary
+
+# Raw source fixtures: stored byte for byte (the FCR CSV has CRLF and a BOM
+# that staging must handle, and the bytes must match the sha256 in _meta.json).
+tests/fixtures/raw/** -text
