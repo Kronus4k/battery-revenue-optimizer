@@ -1,13 +1,13 @@
 """
 ingest_svk: yesterday's balancing data (FCR from Mimer, mFRR from SVK Data
-Service), every day at 10:00 Stockholm. (Day 2, step 2.7)
+Service), every day at 10:00 Stockholm.
 
 SvK publishes results for day D during the morning of D+1, so the 10:00 run
-fetches delivery date = YESTERDAY (offset -1). Retries every 30 min until
+fetches delivery date = yesterday (offset -1). Retries every 30 min until
 ~12:00 if a source is late.
 
-Day 4 (D4.2): the fetch task now declares RAW_SVK as an outlet. When it
-SUCCEEDS, Airflow records an asset event and the transform DAG runs.
+The fetch task declares RAW_SVK as an outlet. When it
+succeeds, Airflow records an asset event and the transform DAG runs.
 If all retries fail, no event -> transform does not run on missing data.
 """
 from datetime import timedelta

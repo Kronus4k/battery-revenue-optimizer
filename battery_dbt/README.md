@@ -1,15 +1,5 @@
-Welcome to your new dbt project!
+# battery_dbt
 
-### Using the starter project
+dbt project of the Battery Revenue Optimizer: raw landing files -> staging (parse and type) -> intermediate (align grains) -> marts (daily strategies and the upper bound).
 
-Try running the following commands:
-- dbt run
-- dbt test
-
-
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [chat](https://community.getdbt.com/) on Slack for live discussions and support
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+Run it from this folder with the `.venv-dbt` environment: `dbt build`. Connection settings come from environment variables (see `profiles.yml`). Project overview, data flow and tests: the [main README](../README.md).

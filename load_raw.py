@@ -1,14 +1,14 @@
 """
 load_raw.py - copy raw files from the S3 lake into the warehouse landing table.
 
-Design (Day 3, Option A, see Note 3.x):
-  * ONE row per raw data file in raw.landing_files, bytes UNTOUCHED (bytea).
-  * NO parsing here. BOM, ';' separators, decimal commas, the 'Summa' row...
+Design:
+  * One row per raw data file in raw.landing_files, bytes untouched (bytea).
+  * No parsing here. BOM, ';' separators, decimal commas, the 'Summa' row...
     all of that is fixed downstream in dbt staging, where tests can see it.
   * Idempotent: the primary key is (source, zone, delivery_date), the same
     partition as the S3 path. A rerun replaces the row; it never duplicates.
   * Honest counters: a row is only rewritten when its bytes or meta changed,
-    so loaded_at shows when the data REALLY changed, not when we last ran.
+    so loaded_at shows when the data really changed, not when we last ran.
 
 Usage (cmd, from the project folder, after load_env):
     python load_raw.py 2026-07-09 2026-10-06
@@ -39,7 +39,7 @@ import psycopg2
 RAW_PREFIX = "raw/"
 
 WAREHOUSE_HOST = os.environ.get("WAREHOUSE_HOST", "127.0.0.1")
-WAREHOUSE_PORT = int(os.environ.get("WAREHOUSE_PORT", "5433"))  # NOT 5432 (Note 3.2)
+WAREHOUSE_PORT = int(os.environ.get("WAREHOUSE_PORT", "5433"))  # not 5432: the Windows PostgreSQL service uses it
 
 
 # ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ def parse_raw_key(key):
     'raw/source=elpris/zone=SE3/date=2026-09-15/response.json'
         -> ('elpris', 'SE3', date(2026, 9, 15), 'response.json')
 
-    Returns None for anything that is not a DATA file:
+    Returns None for anything that is not a data file:
       * meta files ('_meta.json', '_last_attempt.json') start with '_'
       * keys that don't follow the source=/zone=/date= layout
     """
@@ -91,7 +91,7 @@ def lake_bucket():
 
 def list_data_keys(s3, bucket, start, end):
     """
-    List every DATA file under raw/ whose delivery date is in [start, end].
+    List every data file under raw/ whose delivery date is in [start, end].
     Uses a paginator: one ListObjectsV2 call returns at most 1000 keys,
     and our lake already holds more than that (data + 2 meta files each).
     """
@@ -102,14 +102,14 @@ def list_data_keys(s3, bucket, start, end):
             parsed = parse_raw_key(obj["Key"])
             if parsed and start <= parsed[2] <= end:
                 found.append((obj["Key"], parsed))
-    # Deterministic order (same rule as Day 1): sort on the unique key.
+    # Deterministic order: sort on the unique key.
     found.sort(key=lambda item: (item[1][0], item[1][1], item[1][2]))
     return found
 
 
 def read_meta(s3, bucket, data_key):
     """
-    Read the _meta.json next to a data file. Option C (Day 1) writes it
+    Read the _meta.json next to a data file. ingest.write_raw writes it
     together with every data file, so a missing one is unexpected: we load
     the file anyway with meta = NULL, and a dbt test will flag it.
     """
@@ -125,8 +125,8 @@ def read_meta(s3, bucket, data_key):
 # Warehouse side
 # ---------------------------------------------------------------------------
 # ON CONFLICT ... DO UPDATE ... WHERE: only rewrite when something changed.
-# RETURNING (xmax = 0): Postgres trick. xmax is 0 for a freshly INSERTED row
-# and non-zero for an UPDATED one. If the WHERE is false (nothing changed),
+# RETURNING (xmax = 0): Postgres trick. xmax is 0 for a freshly inserted row
+# and non-zero for an updated one. If the WHERE is false (nothing changed),
 # no row is returned at all -> we count it as 'unchanged'.
 UPSERT_SQL = """
 insert into raw.landing_files (source, zone, delivery_date, s3_key, content, meta)

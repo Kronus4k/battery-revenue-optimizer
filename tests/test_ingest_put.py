@@ -1,8 +1,8 @@
 """
-Where ingest.put() writes (migration Phase 4, T3). No AWS calls: S3 is faked.
+Where ingest.put() writes. No AWS calls: S3 is faked.
 
 Rules:
-  - LAKE_TARGET=s3: the bucket comes from LAKE_BUCKET, read at CALL time.
+  - LAKE_TARGET=s3: the bucket comes from LAKE_BUCKET, read at call time.
     No fallback name: a missing LAKE_BUCKET is an error, never the old bucket.
   - LAKE_TARGET=local (or unset): unchanged, files under data/raw/, and
     LAKE_BUCKET is not needed at all.

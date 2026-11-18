@@ -1,8 +1,8 @@
-# dbt connection profile. Contains NO secrets: credentials are read from
+# dbt connection profile. Contains no secrets: credentials are read from
 # environment variables (loaded from .env), so this file is safe to commit.
 #
-# Host/port are ALSO env vars (Day 4), because "where is the warehouse"
-# depends on WHERE dbt runs:
+# Host/port are also env vars, because "where is the warehouse"
+# depends on where dbt runs:
 #   - on Windows (your laptop):  127.0.0.1:5433  -> Docker's published port
 #   - inside an Airflow container: warehouse:5432 -> service name + container port
 # The defaults below are the laptop values, so local runs need no extra setup;
@@ -13,9 +13,9 @@ battery_dbt:                 # must match "profile:" in dbt_project.yml
     dev:
       type: postgres
       host: "{{ env_var('WAREHOUSE_HOST', '127.0.0.1') }}"
-      # env_var() always returns TEXT; as_number turns "5433" into 5433.
+      # env_var() always returns text; as_number turns "5433" into 5433.
       # A non-number (e.g. a typo) fails loudly at profile load.
-      port: "{{ env_var('WAREHOUSE_PORT', '5433') | as_number }}"   # NOT 5432 locally: Windows PostgreSQL (Note 3.2)
+      port: "{{ env_var('WAREHOUSE_PORT', '5433') | as_number }}"   # not 5432 locally: the Windows PostgreSQL service uses it
       user: "{{ env_var('WAREHOUSE_USER') }}"
       password: "{{ env_var('WAREHOUSE_PASSWORD') }}"
       dbname: "{{ env_var('WAREHOUSE_DB') }}"

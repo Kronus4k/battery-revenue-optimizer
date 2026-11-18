@@ -1,10 +1,10 @@
 """
-battery_common: shared ingestion logic for all battery DAGs (Day 2, step 2.7).
+battery_common: shared ingestion logic for all battery DAGs.
 
 Why a separate module?
-  - Three DAGs (ingest_elpris, ingest_svk, ingest_daily) need the SAME checks.
-    One copy means a fix (like the drill's EMPTY fix) applies everywhere.
-  - Nothing here imports Airflow, so CI (step 2.8) can unit-test it with plain
+  - Three DAGs (ingest_elpris, ingest_svk, ingest_daily) need the same checks.
+    One copy means a fix applies everywhere.
+  - Nothing here imports Airflow, so CI can unit-test it with plain
     pytest, without installing Airflow. Any exception fails the Airflow task.
   - Airflow puts the dags/ folder on sys.path, so DAG files can simply
     `from battery_common import ...`.
@@ -28,7 +28,7 @@ def delivery_date_for(logical_date, offset_days=0):
     """
     Logical date (UTC, from Airflow) -> delivery date string 'YYYY-MM-DD'.
 
-    1. Convert to Stockholm time FIRST (Note 2.7: .date() on UTC shifts days).
+    1. Convert to Stockholm time first: .date() on a UTC time shifts the day.
     2. Take the local calendar date.
     3. Apply the source's publication offset:
          elpris  +1  (13:30 run fetches tomorrow's day-ahead prices)
@@ -45,7 +45,7 @@ def find_failures(results, prefix=""):
     Walk the Lambda's nested 'results' and return every entry that is not 200,
     labelled with its path, e.g. 'elpris.SE3=404'.
     Empty nested dicts count as failures ('elpris=EMPTY'), and values are shown
-    with repr so the string '200' can't pass for success (Day 2 drill fixes).
+    with repr so the string '200' can't pass for success.
     """
     failures = []
     for name, value in results.items():
@@ -62,7 +62,7 @@ def find_failures(results, prefix=""):
 
 def check_response(status_code, function_error, body, expected_sources):
     """
-    The three-layer check (Note 2.7) as a pure function -> easy to unit-test.
+    The three-layer check as a pure function, so it is easy to unit-test.
     Returns a list of problems; empty list = genuine success.
     """
     if status_code != 200:
@@ -72,7 +72,7 @@ def check_response(status_code, function_error, body, expected_sources):
 
     results = body.get("results") or {}
     problems = []
-    # NEW in 2.7: a requested source that is absent from the response is a
+    # A requested source that is absent from the response is a
     # failure. Otherwise asking for ["svk_fcr", "svk_mfrr"] and getting back
     # only svk_fcr would pass silently.
     for source in expected_sources:
@@ -114,15 +114,15 @@ def invoke_and_check(delivery_date, sources):
 
 def load_window(today, lookback_days=3, lookahead_days=1):
     """
-    Rolling window of delivery dates to (re)load into the warehouse (Day 4).
+    Rolling window of delivery dates to (re)load into the warehouse.
 
-    today: a datetime.date in MARKET time (Stockholm), not UTC.
+    today: a datetime.date in market time (Stockholm), not UTC.
     Returns (start, end) as 'YYYY-MM-DD' strings, both inclusive.
 
     Why a window, not just one day?
       - lookback: a late file or a re-fetch of the last few days is picked up
         automatically. Safe because load_raw upserts (unchanged files = no-op).
-      - lookahead: elpris publishes TOMORROW's prices at 13:30, so tomorrow
+      - lookahead: elpris publishes tomorrow's prices at 13:30, so tomorrow
         must be inside the window too.
     """
     if lookback_days < 0 or lookahead_days < 0:
@@ -135,18 +135,18 @@ def load_window(today, lookback_days=3, lookahead_days=1):
 
 def freshness_problems(gaps, today):
     """
-    Filter lake gaps down to the ones that are REAL problems at check time
-    (Day 4, D4.3; the monitor runs at 15:30 Stockholm, after the last retries).
+    Filter lake gaps down to the ones that are real problems at check time
+    (the monitor runs at 15:30 Stockholm, after the last retries).
 
     gaps:  output of verify_backfill.find_gaps(keys, start, end), i.e.
            {'YYYY-MM-DD': ['svk_fcr/ALL', 'elpris/SE3', ...]}
-    today: datetime.date in MARKET time (Stockholm).
+    today: datetime.date in market time (Stockholm).
 
     Publication rules (memory hook: elpris = tomorrow, SvK = yesterday):
-      - SvK for day D is published on D+1, so SvK for TODAY or later is
+      - SvK for day D is published on D+1, so SvK for today or later is
         not due yet -> expected missing, dropped.
-      - elpris for TOMORROW is fetched at 13:30 (retries until ~15:00),
-        so at 15:30 it IS due -> kept if missing.
+      - elpris for tomorrow is fetched at 13:30 (retries until ~15:00),
+        so at 15:30 it is due -> kept if missing.
       - Everything before today must be complete (all 6 sources/zones).
     Returns the same shape as gaps, only with entries that should exist.
     """

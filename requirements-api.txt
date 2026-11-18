@@ -1,4 +1,4 @@
-# Flask API (Day 4, D4.4). The API image installs ONLY this file.
+# Flask API. The API image installs only this file.
 # Versions checked on PyPI 2026-10-10, each released more than 2 weeks earlier.
 flask==3.1.3
 gunicorn==26.2.0

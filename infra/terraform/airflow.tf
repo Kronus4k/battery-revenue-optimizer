@@ -11,9 +11,9 @@ data "aws_iam_policy_document" "airflow_trust" {
       type        = "AWS"
       identifiers = ["arn:aws:iam::${local.account_id}:root"]
     }
-    # Only the AdministratorAccess permission set's role in THIS account.
+    # Only the AdministratorAccess permission set's role in this account.
     # Its real path is /aws-reserved/sso.amazonaws.com/<region>/ (checked read-only).
-    # Becomes the scoped permission set once that exists (Day 4 security item).
+    # Known gap: production would use a scoped permission set (README "Security").
     condition {
       test     = "ArnLike"
       variable = "aws:PrincipalArn"

@@ -15,7 +15,7 @@ def test_zone_all_csv_is_parsed():
 
 
 def test_meta_files_are_skipped():
-    # Option C writes _meta.json and _last_attempt.json next to every data file.
+    # ingest.write_raw puts _meta.json and _last_attempt.json next to every data file.
     # Loading them as data would put JSON metadata where dbt expects prices.
     base = "raw/source=elpris/zone=SE3/date=2026-09-15/"
     assert parse_raw_key(base + "_meta.json") is None

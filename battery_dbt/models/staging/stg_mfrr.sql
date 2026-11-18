@@ -17,9 +17,9 @@ records as (
 select
     rec ->> 'bidding_zone'                                   as bidding_zone,
     delivery_date,
-    -- start_time_utc has NO offset. Declare it UTC explicitly; a plain ::timestamptz
-    -- cast uses the SESSION time zone: correct on a UTC server by luck, wrong by
-    -- 1-2 h in Europe/Stockholm (red test: 19,008 of 19,008 rows failed).
+    -- start_time_utc has no offset. Declare it UTC explicitly; a plain ::timestamptz
+    -- cast uses the session time zone: correct on a UTC server by luck, wrong by
+    -- 1-2 h in Europe/Stockholm (tested: all 19,008 rows were off).
     (rec ->> 'start_time_utc')::timestamp at time zone 'UTC' as ts_utc,
     ((rec ->> 'start_time_utc')::timestamp at time zone 'UTC')
         at time zone 'Europe/Stockholm'                      as ts_local,

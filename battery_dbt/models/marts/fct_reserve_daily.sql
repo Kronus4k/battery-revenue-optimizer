@@ -1,6 +1,6 @@
 -- fct_reserve_daily: strategy A, reserve leg. Revenue per zone, day and product
--- if the full battery power is offered in that ONE product for every hour of the day.
--- Simplifications (README): capacity payment only (no activation energy),
+-- if the full battery power is offered in that one product for every hour of the day.
+-- Simplifications (README "Limitations"): capacity payment only (no activation energy),
 -- no endurance / state-of-charge rules, no stacking of products.
 -- Missing hours: revenue sums the hours the source published, so a missing hour
 -- earns 0 (conservative). n_hours < expected_hours makes such a gap visible

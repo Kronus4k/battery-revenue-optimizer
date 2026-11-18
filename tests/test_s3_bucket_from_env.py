@@ -1,9 +1,9 @@
 """
-verify_backfill.py and load_raw.py read the lake bucket from LAKE_BUCKET
-(migration Phase 4, T4 + T5). No AWS calls and no database: both are faked.
+verify_backfill.py and load_raw.py read the lake bucket from LAKE_BUCKET.
+No AWS calls and no database: both are faked.
 
 Both scripts are mounted into Airflow on their own, so each has its own small
-lake_bucket() helper. Rule for both: the bucket is read at CALL time and a
+lake_bucket() helper. Rule for both: the bucket is read at call time and a
 missing LAKE_BUCKET is an error, never a fallback to the old bucket.
 """
 from datetime import date
@@ -49,7 +49,7 @@ def must_not_be_called(*_args, **_kwargs):
     raise AssertionError("must fail before any AWS or database call")
 
 
-# ---------------------------------------------------------------- verify_backfill (T4)
+# ---------------------------------------------------------------- verify_backfill
 def test_verify_backfill_lists_bucket_from_env(monkeypatch):
     fake = FakeS3(pages=[{"Contents": [{"Key": "raw/x"}]}])
     monkeypatch.setattr(verify_backfill.boto3, "client", lambda service: fake)
@@ -65,7 +65,7 @@ def test_verify_backfill_without_lake_bucket_raises(monkeypatch):
         list(verify_backfill.list_raw_keys())
 
 
-# ---------------------------------------------------------------- load_raw (T5)
+# ---------------------------------------------------------------- load_raw
 def test_load_raw_list_data_keys_uses_given_bucket():
     key = "raw/source=elpris/zone=SE3/date=2026-09-15/response.json"
     fake = FakeS3(pages=[{"Contents": [{"Key": key}]}])

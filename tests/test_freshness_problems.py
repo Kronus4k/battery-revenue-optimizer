@@ -1,5 +1,5 @@
 """
-Unit tests for freshness_problems() in dags/battery_common.py (Day 4, step 3c).
+Unit tests for freshness_problems() in dags/battery_common.py.
 
 The monitor DAG alerts on whatever this function returns. Two ways it can
 fail silently:
@@ -36,13 +36,13 @@ def test_missing_yesterday_svk_is_a_problem():
 
 
 def test_missing_today_elpris_is_a_problem():
-    # Today's elpris was fetched YESTERDAY at 13:30.
+    # Today's elpris was fetched yesterday at 13:30.
     gaps = {"2026-10-10": SVK + ["elpris/SE1"]}
     assert freshness_problems(gaps, TODAY) == {"2026-10-10": ["elpris/SE1"]}
 
 
 def test_old_fully_missing_day_reports_all_six():
-    # Ingestion never retries a missed day on its own (case 1, Day 4):
+    # Ingestion never retries a missed day on its own:
     # a whole missing day in the lookback must surface completely.
     gaps = {"2026-10-05": ELPRIS + SVK}
     assert freshness_problems(gaps, TODAY) == {"2026-10-05": ELPRIS + SVK}

@@ -1,16 +1,11 @@
 
-# Name your project! Project names should contain only lowercase characters
-# and underscores. A good package name should reflect your organization's
-# name or the intended use of these models
+# Battery Revenue Optimizer: raw landing files -> staging -> intermediate -> marts.
 name: 'battery_dbt'
 version: '1.0.0'
 
-# This setting configures which "profile" dbt uses for this project.
+# Connection settings: profiles.yml in this folder (credentials from env vars).
 profile: 'battery_dbt'
 
-# These configurations specify where dbt should look for different types of files.
-# The `model-paths` config, for example, states that models in this project can be
-# found in the "models/" directory. You probably won't need to change these!
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -23,10 +18,6 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "dbt_packages"
 
 
-# Configuring models
-# Full documentation: https://docs.getdbt.com/docs/configuring-models
-
-
 models:
   battery_dbt:
     # Layered ELT: each folder becomes its own schema in the warehouse.
@@ -37,17 +28,17 @@ models:
     intermediate:       # joins and grain alignment (15-min -> hourly)
       +schema: intermediate
       +materialized: view
-    marts:              # backtest results Flask will read
+    marts:              # backtest results the Flask API reads
       +schema: marts
       +materialized: table
-      # Day 4 (D4.4): read-only API login. dbt drops/recreates these tables on
+      # Read-only API login. dbt drops/recreates these tables on
       # every build (losing manual grants), and re-applies this after each build.
       # Only marts: staging/intermediate stay closed to api_reader.
       +grants:
         select: ['api_reader']
 
 
-# Battery and backtest assumptions (README "Simplifications"; Note 3.1).
+# Battery and backtest assumptions (README "Limitations" lists what they leave out).
 vars:
   battery_power_mw: 1             # max charge/discharge power
   battery_energy_mwh: 2           # storage capacity -> 2 h at full power

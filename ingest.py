@@ -1,7 +1,7 @@
 """
 ingest.py - shared raw-zone helpers + elpris spot prices (SE1-SE4)
 
-Stores data exactly as received in the raw zone: local disk or S3 (Step 4).
+Stores data exactly as received in the raw zone: local disk or S3.
 Other ingestion scripts (e.g. ingest_svk.py) import raw_path, write_raw and
 record_network_error from here, so every source follows the same rules.
 
@@ -27,13 +27,13 @@ SOURCE = "elpris"                               # name of the source, goes into 
 ZONES = ["SE1", "SE2", "SE3", "SE4"]            # all four Swedish bidding zones
 BASE_URL = "https://www.elprisetjustnu.se/api/v1/prices"
 
-# --- Where the lake lives: a SETTING, not hard-coded ------------------------
+# --- Where the lake lives: a setting, not hard-coded ------------------------
 # Environment variables are settings given to a program from outside, so the
 # same code can run locally, in Lambda, or in CI without being edited.
 #   LAKE_TARGET=local (default) -> files under data/raw/... on your disk
 #   LAKE_TARGET=s3              -> objects under raw/... in bucket LAKE_BUCKET
-# Both are read when a file is WRITTEN, not at import, so tests (and a
-# changed setting) take effect. There is deliberately NO default bucket name:
+# Both are read when a file is written, not at import, so tests (and a
+# changed setting) take effect. There is deliberately no default bucket name:
 # a missing LAKE_BUCKET must fail, never write to a bucket we may not own.
 # In AWS, Terraform sets both on the Lambda (infra/terraform/lambda.tf).
 LOCAL_ROOT = Path("data")                       # local lake root: data/raw/...
@@ -69,10 +69,10 @@ def _s3_client():
 
 def put(prefix: str, filename: str, body: bytes) -> None:
     """Write one file to the lake, wherever the lake is.
-    This is the ONLY function that knows about disk vs S3."""
+    This is the only function that knows about disk vs S3."""
     key = f"{prefix}/{filename}"                # e.g. raw/source=elpris/.../_meta.json
     if lake_target() == "s3":
-        bucket = lake_bucket()                  # fails BEFORE any S3 call if unset
+        bucket = lake_bucket()                  # fails before any S3 call if unset
         # S3 has no real folders: the "path" is just part of the object's name
         # (its key). So there's nothing like mkdir; we simply write the object.
         # Writing to an existing key replaces it -> idempotency still holds
@@ -85,7 +85,7 @@ def put(prefix: str, filename: str, body: bytes) -> None:
         )
     else:
         path = LOCAL_ROOT / key
-        path.parent.mkdir(parents=True, exist_ok=True)  # disk DOES need folders
+        path.parent.mkdir(parents=True, exist_ok=True)  # disk does need folders
         path.write_bytes(body)
 
 
@@ -114,10 +114,10 @@ def raw_path(source: str, zone: str, delivery_date: date) -> str:
 
 def write_raw(folder: str, resp: requests.Response, url: str,
               filename: str = "response.json", extra: dict = None) -> None:
-    """Option C (Step 2):
-    - the response file + _meta.json are written TOGETHER, only on success,
+    """Write one successful response to the raw zone:
+    - the response file + _meta.json are written together, only on success,
       so _meta.json always describes the data file next to it.
-    - _last_attempt.json is written on EVERY attempt, success or failure.
+    - _last_attempt.json is written on every attempt, success or failure.
     `filename` lets each source keep its real format (json, csv, ...).
     `extra` lets a source add its own fields (e.g. records_sha256 for mFRR)."""
     # One record describes this attempt; both files are built from it.
@@ -125,7 +125,7 @@ def write_raw(folder: str, resp: requests.Response, url: str,
         "fetched_at_utc": datetime.now(timezone.utc).isoformat(),
         "url": url,                              # resp.url would include encoded params too
         "http_status": resp.status_code,
-        "sha256": hashlib.sha256(resp.content).hexdigest(),  # BYTE hash: exactly what arrived
+        "sha256": hashlib.sha256(resp.content).hexdigest(),  # byte hash: exactly what arrived
         "file": filename,                        # which data file this describes
     }
     record.update(extra or {})                   # add source-specific fields, if any

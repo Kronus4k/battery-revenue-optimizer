@@ -22,9 +22,9 @@ select
     zone                                             as bidding_zone,
     delivery_date,
     -- The timestamp carries its offset (+01:00/+02:00), so this is an exact instant.
-    -- ts_utc is our key (locked decision: UTC keeps keys unique across DST).
+    -- ts_utc is the key: UTC keeps keys unique across DST.
     (rec ->> 'time_start')::timestamptz              as ts_utc,
-    -- Local time is DERIVED here, never stored independently upstream.
+    -- Local time is derived here, never stored independently upstream.
     (rec ->> 'time_start')::timestamptz
         at time zone 'Europe/Stockholm'               as ts_local,
     -- Should always be 15; a test will prove it.

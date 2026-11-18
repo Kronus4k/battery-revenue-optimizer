@@ -1,7 +1,7 @@
 """
-Unit tests for load_window() in dags/battery_common.py (Day 4, step 2m).
+Unit tests for load_window() in dags/battery_common.py.
 
-load_window decides WHICH delivery dates the transform DAG reloads.
+load_window decides which delivery dates the transform DAG reloads.
 A wrong window fails silently: the run is green, but late files are never
 loaded (window too short) or tomorrow's elpris prices are missed (no lookahead).
 So the known answers are pinned here, including calendar edges.
@@ -29,7 +29,7 @@ def test_window_crosses_year_boundary():
 
 def test_dst_day_is_just_a_date():
     # 2026-10-25 has 25 hours in Stockholm, but load_window works on calendar
-    # DATES (already converted to market time by the caller), so DST cannot
+    # dates (already converted to market time by the caller), so DST cannot
     # shift the window. This pins that contract.
     assert load_window(date(2026, 10, 25)) == ("2026-10-22", "2026-10-26")
 

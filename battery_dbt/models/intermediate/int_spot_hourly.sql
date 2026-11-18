@@ -5,7 +5,7 @@
 select
     bidding_zone,
     -- 3-argument date_trunc: cut the hour in UTC explicitly. The 2-argument form
-    -- uses the SESSION time zone (red test: every hour split 2+2 in a UTC+5:30 session).
+    -- uses the session time zone (in a UTC+5:30 session every hour split 2+2).
     date_trunc('hour', ts_utc, 'UTC')                                  as ts_utc,
     date_trunc('hour', ts_utc, 'UTC') at time zone 'Europe/Stockholm' as ts_local,
     min(delivery_date)                                                 as delivery_date,

@@ -1,12 +1,11 @@
 """
-ingest_daily: MANUAL reruns and BACKFILLS only. Keep this DAG PAUSED.
-(Day 2: built in 2.3, backfilled in 2.5, refactored in 2.7)
+ingest_daily: manual reruns and backfills only. Keep this DAG paused.
 
-Offset 0: the logical date IS the delivery date, all sources at once.
+Offset 0: the logical date is the delivery date, all sources at once.
 Daily unattended ingestion is done by ingest_elpris (13:30, tomorrow) and
 ingest_svk (10:00, yesterday).
 
-Backfill rule (Note 2.10): enter explicit times in the dialog, then verify the
+Backfill rule: enter explicit times in the dialog, then verify the
 first and last run's logged date and run verify_backfill.py over a wider window.
 """
 from datetime import timedelta

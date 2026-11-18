@@ -1,13 +1,12 @@
 """
-verify_backfill.py: does the lake actually contain what 90 green runs claim?
-(Day 2, step 2.5b)
+verify_backfill.py: does the lake actually contain what green runs claim?
 
 Green in Airflow = every invoke returned 200s. This script checks the other
 side independently: for every delivery date in the range, does each expected
 source/zone folder contain a _meta.json? (_meta.json is only written together
-with the data file, Option C from Day 1, so its presence = data landed.)
+with the data file (ingest.write_raw), so its presence = data landed.)
 
-Runs on your laptop and, since Day 4, inside Airflow: the monitor_freshness
+Runs on your laptop and inside Airflow: the monitor_freshness
 DAG imports find_gaps/list_raw_keys. Both run as the IAM role
 battery-optimizer-airflow (profile of the same name, assumed from the SSO
 session): s3:ListBucket limited to prefix raw/*, s3:GetObject on raw/*.
