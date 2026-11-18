@@ -154,6 +154,7 @@ Every check has been seen to fail at least once (a deliberately broken test, a r
 - **Secrets stay local.** Passwords live in a git-ignored `.env`. Staged files are scanned before each push.
 - **Private by default.** Both S3 buckets block public access, disable ACLs, are encrypted with SSE-S3 and reject requests that are not over TLS. Docker ports are bound to `127.0.0.1`.
 - **No identifiers in the repo.** Account IDs, ARNs containing them and SSO URLs are never committed; Terraform reads the account ID at plan time.
+- **Known gaps (accepted for a short-lived project account).** Terraform and the SSO session use the AdministratorAccess permission set, and the Lambda role's trust policy names only the Lambda service. Production would add a permission set limited to `battery-optimizer-*` resources, with a permissions boundary so that no project role can be given more rights, and `aws:SourceAccount` / `aws:SourceArn` conditions on the Lambda role's trust policy.
 
 ## Cost
 
