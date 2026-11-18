@@ -184,7 +184,9 @@ services:
     <<: *airflow-common
     command: api-server
     ports:
-      - "8080:8080"
+      # 127.0.0.1 so only this PC can reach the Airflow UI and REST API,
+      # like the warehouse and the API above.
+      - "127.0.0.1:8080:8080"
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/version"]
       interval: 30s
