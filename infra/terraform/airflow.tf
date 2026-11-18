@@ -31,9 +31,9 @@ resource "aws_iam_role" "airflow" {
 
 data "aws_iam_policy_document" "airflow_access" {
   statement {
-    sid       = "InvokeIngestLambda"
-    effect    = "Allow"
-    actions   = ["lambda:InvokeFunction"]
+    sid     = "InvokeIngestLambda"
+    effect  = "Allow"
+    actions = ["lambda:InvokeFunction"]
     # Built from known pieces, not aws_lambda_function.ingest.arn: a reference to
     # the function defers this document to apply time whenever the code changes,
     # and the plan then shows a false update of the policy.
