@@ -34,7 +34,10 @@ data "aws_iam_policy_document" "airflow_access" {
     sid       = "InvokeIngestLambda"
     effect    = "Allow"
     actions   = ["lambda:InvokeFunction"]
-    resources = [aws_lambda_function.ingest.arn]
+    # Built from known pieces, not aws_lambda_function.ingest.arn: a reference to
+    # the function defers this document to apply time whenever the code changes,
+    # and the plan then shows a false update of the policy.
+    resources = ["arn:aws:lambda:${data.aws_region.current.region}:${local.account_id}:function:${local.lambda_name}"]
   }
   statement {
     sid       = "ListRawZoneOnly"
