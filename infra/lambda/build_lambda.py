@@ -81,7 +81,7 @@ def entry_bytes(path):
     data = path.read_bytes()
     if path.name == "RECORD" and path.parent.name.endswith(".dist-info"):
         lines = data.splitlines(keepends=True)
-        data = b"".join(l for l in lines if not l.startswith(b"../../bin/"))
+        data = b"".join(line for line in lines if not line.startswith(b"../../bin/"))
     return data
 
 

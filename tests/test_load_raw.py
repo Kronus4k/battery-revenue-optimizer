@@ -1,6 +1,8 @@
 """Unit tests for load_raw.parse_raw_key (pure function: no S3, no database)."""
 from datetime import date
 
+import pytest
+
 from load_raw import parse_raw_key
 
 
@@ -29,8 +31,6 @@ def test_invalid_date_partition_is_skipped():
 def test_folder_marker_and_wrong_layout_are_skipped():
     assert parse_raw_key("raw/source=elpris/zone=SE3/") is None
     assert parse_raw_key("processed/source=x/zone=y/date=2026-01-01/a.json") is None
-
-import pytest
 
 @pytest.mark.parametrize("bad", ["2026-02-30", "2026-13-01", "26-09-15", ""])
 def test_impossible_or_malformed_dates_are_skipped(bad):

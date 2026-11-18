@@ -12,6 +12,11 @@ Design:
 
 Usage (cmd, from the project folder, after load_env):
     python load_raw.py 2026-07-09 2026-10-06
+    python load_raw.py 2026-10-09 2026-10-25 --from-dir tests/fixtures
+
+--from-dir reads a local copy of the lake (<dir>/raw/source=.../...) instead of
+S3; CI uses it with the committed fixtures. It is an explicit flag on purpose:
+the Airflow task never passes it, so production cannot switch to local files.
 
 Credentials:
   * AWS: no keys. AWS_PROFILE=battery-optimizer-airflow (from .env locally,
@@ -24,10 +29,11 @@ Credentials:
     inside Docker (Airflow) they will be overridden to warehouse:5432.
 """
 
+import argparse
 import json
 import os
-import sys
 from datetime import date
+from pathlib import Path
 
 import boto3
 import psycopg2
@@ -122,6 +128,33 @@ def read_meta(s3, bucket, data_key):
 
 
 # ---------------------------------------------------------------------------
+# Local copy of the lake (same layout under <root>/raw/), used by CI
+# ---------------------------------------------------------------------------
+def list_local_keys(root, start, end):
+    """Same result as list_data_keys, for files under <root>/raw/. Keys are
+    built relative to root, so parse_raw_key filters them exactly as in S3."""
+    base = Path(root)
+    found = []
+    for path in (base / "raw").rglob("*"):
+        if not path.is_file():
+            continue
+        key = path.relative_to(base).as_posix()
+        parsed = parse_raw_key(key)
+        if parsed and start <= parsed[2] <= end:
+            found.append((key, parsed))
+    found.sort(key=lambda item: (item[1][0], item[1][1], item[1][2]))
+    return found
+
+
+def read_local_meta(root, data_key):
+    """The _meta.json next to a local data file, or None if it is missing."""
+    meta_path = Path(root) / data_key.rsplit("/", 1)[0] / "_meta.json"
+    if not meta_path.is_file():
+        return None
+    return json.loads(meta_path.read_bytes())
+
+
+# ---------------------------------------------------------------------------
 # Warehouse side
 # ---------------------------------------------------------------------------
 # ON CONFLICT ... DO UPDATE ... WHERE: only rewrite when something changed.
@@ -153,11 +186,30 @@ def connect_warehouse():
     )
 
 
-def load(start, end):
-    bucket = lake_bucket()                  # fails before any AWS/DB call if unset
-    s3 = boto3.client("s3")
-    keys = list_data_keys(s3, bucket, start, end)
-    print(f"Found {len(keys)} data files in S3 for {start} -> {end}")
+def load(start, end, from_dir=None):
+    if from_dir is None:
+        bucket = lake_bucket()              # fails before any AWS/DB call if unset
+        s3 = boto3.client("s3")
+        keys = list_data_keys(s3, bucket, start, end)
+
+        def read_content(key):
+            return s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+
+        def read_file_meta(key):
+            return read_meta(s3, bucket, key)
+
+        where = "S3"
+    else:
+        keys = list_local_keys(from_dir, start, end)
+
+        def read_content(key):
+            return (Path(from_dir) / key).read_bytes()
+
+        def read_file_meta(key):
+            return read_local_meta(from_dir, key)
+
+        where = from_dir
+    print(f"Found {len(keys)} data files in {where} for {start} -> {end}")
 
     counts = {"inserted": 0, "updated": 0, "unchanged": 0}
     conn = connect_warehouse()
@@ -166,8 +218,8 @@ def load(start, end):
         # 'with conn' commits on success and rolls back on any exception.
         with conn, conn.cursor() as cur:
             for key, (source, zone, delivery_date, _file) in keys:
-                content = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
-                meta = read_meta(s3, bucket, key)
+                content = read_content(key)
+                meta = read_file_meta(key)
                 cur.execute(UPSERT_SQL, (
                     source, zone, delivery_date, key,
                     psycopg2.Binary(content),                 # bytes -> bytea, untouched
@@ -189,6 +241,9 @@ def load(start, end):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit("usage: python load_raw.py <start YYYY-MM-DD> <end YYYY-MM-DD>")
-    load(date.fromisoformat(sys.argv[1]), date.fromisoformat(sys.argv[2]))
+    parser = argparse.ArgumentParser(description="Load raw lake files into raw.landing_files.")
+    parser.add_argument("start", type=date.fromisoformat, help="first delivery date, YYYY-MM-DD")
+    parser.add_argument("end", type=date.fromisoformat, help="last delivery date, YYYY-MM-DD")
+    parser.add_argument("--from-dir", help="read a local copy of the lake instead of S3")
+    args = parser.parse_args()
+    load(args.start, args.end, from_dir=args.from_dir)

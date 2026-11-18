@@ -382,7 +382,7 @@ def chart_winners(winners, zones, strategies, n_days, subtitle):
         ax.bar_label(bars, labels=[f"{product_label(s)} {v}" if v >= 18 else (str(v) if v >= 5 else "")
                                    for v in vals],
                      label_type="center", fontsize=8, color="white" if dark else INK)
-        left = [l + v for l, v in zip(left, vals)]
+        left = [start + v for start, v in zip(left, vals)]
     ax.invert_yaxis()
     ax.set_xlim(0, n_days)
     ax.set_xticks([])

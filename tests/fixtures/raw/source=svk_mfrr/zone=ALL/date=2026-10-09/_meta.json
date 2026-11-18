@@ -1,0 +1,9 @@
+{
+  "fetched_at_utc": "2026-11-17T17:51:33.162935+00:00",
+  "file": "response.json",
+  "http_status": 200,
+  "records_sha256": "92728021c252ce01c9601650b266c7d3f86e72d0a5649049719e9caabd1d0f5b",
+  "row_count": 192,
+  "sha256": "aa71fb7c030f9cdddcc88a0e8be989fa6aae8ff03e16cdb6303d8a33acaf50f1",
+  "url": "https://data.svk.se/api/action/datastore_search?resource_id=0c56e30d-8fce-4c27-afc8-621c230ae34d&filters=%7B%22start_time_sweden%22%3A%7B%22gte%22%3A%222026-10-09T00%3A00%3A00%22%2C%22lt%22%3A%222026-10-10T00%3A00%3A00%22%7D%7D&sort=start_time_utc+asc%2C+bidding_zone+asc%2C+reserve_direction+asc&limit=32000"
+}
