@@ -235,15 +235,16 @@ def tldr_md(summary, winners, n_days, start, end):
     """The README TL;DR bullets that contain numbers; computed, never typed."""
     a = [float(r["a_best"]) for r in summary]
     ratios = [float(r["a_best"]) / float(r["arbitrage"]) for r in summary if float(r["arbitrage"]) > 0]
-    span = f"{min(a):,.0f}–{max(a):,.0f} EUR per day depending on zone"
+    span = f"between {min(a):,.0f} and {max(a):,.0f} EUR per day depending on zone"
+    terms = ("A = the best single strategy per day; B = the theoretical ceiling. With perfect foresight "
+             "and offering the full 1 MW (before the reserve power rules, see [Limitations](#limitations)), "
+             "a 1 MW / 2 MWh battery would have earned")
     window = f"({n_days} days, {start} → {end})"
     if len(ratios) == len(summary) and min(ratios) > 1:
-        first = (f"- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), "
-                 f"a 1 MW / 2 MWh battery earned {span}, {round(min(ratios))}–{round(max(ratios))} times "
-                 f"as much as spot arbitrage alone {window}.")
+        first = (f"- **Reserves beat arbitrage in every zone.** {terms} {span} under A, "
+                 f"{round(min(ratios))}–{round(max(ratios))} times as much as spot arbitrage alone {window}.")
     else:
-        first = (f"- **Strategy A against arbitrage.** Committing to one strategy per day (A), "
-                 f"a 1 MW / 2 MWh battery earned {span} {window}.")
+        first = f"- **Strategy A against arbitrage.** {terms} {span} under A {window}."
     first += " → [Results](#results)"
 
     leader = {}
@@ -263,7 +264,7 @@ def tldr_md(summary, winners, n_days, start, end):
     third = (f"- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of "
              f"charge. It is {min(gains.values())}–{max(gains.values())} % above A, widest in "
              f"{max(gains, key=gains.get)}. No real battery can earn it; it marks the room for an optimiser "
-             "(Phase 2). → [Definitions](docs/results.md#definitions)")
+             "(see [Roadmap](#roadmap-phase-2)). → [Definitions](docs/results.md#definitions)")
     return "\n".join([first, second, third])
 
 

@@ -5,9 +5,9 @@ A data platform that backtests, for every Swedish bidding zone and every day, wh
 ## TL;DR
 
 <!-- results:tldr:start -->
-- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), a 1 MW / 2 MWh battery earned 434–796 EUR per day depending on zone, 3–10 times as much as spot arbitrage alone (139 days, 2026-07-01 → 2026-11-16). → [Results](#results)
+- **Reserves beat arbitrage in every zone.** A = the best single strategy per day; B = the theoretical ceiling. With perfect foresight and offering the full 1 MW (before the reserve power rules, see [Limitations](#limitations)), a 1 MW / 2 MWh battery would have earned between 434 and 796 EUR per day depending on zone under A, 3–10 times as much as spot arbitrage alone (139 days, 2026-07-01 → 2026-11-16). → [Results](#results)
 - **One product leads in each zone.** Most often mFRR down in SE1; FCR-N in SE2 and SE3; mFRR up in SE4. Arbitrage was the best choice on at most 3 of 139 days in any zone. → [Which strategy wins](docs/results.md#which-strategy-wins)
-- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of charge. It is 32–138 % above A, widest in SE3. No real battery can earn it; it marks the room for an optimiser (Phase 2). → [Definitions](docs/results.md#definitions)
+- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of charge. It is 32–138 % above A, widest in SE3. No real battery can earn it; it marks the room for an optimiser (see [Roadmap](#roadmap-phase-2)). → [Definitions](docs/results.md#definitions)
 - **Reproducible from raw data.** The data lake was rebuilt from scratch in a new AWS account and the results for the first 99 days came out identical; one script generates every table and chart from the warehouse. → [How to reproduce](docs/results.md#how-to-reproduce)
 - **Serverless and keyless.** Lambda and S3 managed by Terraform, sign-in through SSO with no long-lived keys, estimated at well under USD 1 per month. → [Security](#security), [Cost](#cost)
 <!-- results:tldr:end -->
@@ -58,7 +58,7 @@ SE1 mFRR up: 3,245 of 3,337 hours published (10 days with gaps). Unpublished hou
 
 *A (solid) against the ceiling B (dashed), month by month per zone; the last month can be partial.*
 
-Reserve capacity payments beat spot arbitrage in every zone: strategy A earns 3 to 10 times as much as arbitrage alone. Over this period (139 days, July to mid-November 2026, one season), each zone's best reserve product and the order of zones (SE4, SE1, SE2, SE3) were the same as in the first 99 days to 2026-10-07, while A fell 4–9 % in SE1–SE3 and rose 11 % in SE4. A full year, including winter and spring, is needed before calling the ranking stable. The gap between A and the ceiling widened most in SE3 as daily spot spreads grew (76 → 180 EUR/MWh on average from July to the first half of November); B ignores state of charge, so it widens with volatility by construction, and how much a real, state-of-charge-constrained optimiser could capture is the Phase 2 question (optimiser C). All figures assume perfect foresight and count capacity payments only; they are backtest results, not expected revenue.
+Reserve capacity payments beat spot arbitrage in every zone: with hindsight, strategy A would have earned 3 to 10 times as much as arbitrage alone. Over this period (139 days, July to mid-November 2026, one season), each zone's best reserve product and the order of zones (SE4, SE1, SE2, SE3) were the same as in the first 99 days to 2026-10-07, while A fell 4–9 % in SE1–SE3 and rose 11 % in SE4. A full year, including winter and spring, is needed before calling the ranking stable. The gap between A and the ceiling widened most in SE3 as daily spot spreads grew (76 → 180 EUR/MWh on average from July to the first half of November); B ignores state of charge, so it widens with volatility by construction, and how much a real, state-of-charge-constrained optimiser could capture is the Phase 2 question (optimiser C). All figures assume perfect foresight and count capacity payments only; they are backtest results, not expected revenue.
 
 Method, assumptions, caveats and monthly figures: [docs/results.md](docs/results.md).
 
@@ -158,7 +158,7 @@ Every check has been seen to fail at least once (a deliberately broken test, a r
 
 - **No long-lived AWS keys.** People sign in through IAM Identity Center (SSO). Airflow and the local scripts assume the IAM role `battery-optimizer-airflow` from that session through an AWS profile; the role's trust policy accepts only that SSO permission set. The trade-off: scheduled runs need a live SSO session that day; the freshness check catches a missed day and `ingest_daily` backfills it. In production, the same policy would be attached to the compute running Airflow (workload identity), so no human session and no keys are involved.
 - **Least privilege.** The Lambda role can only write `raw/*` and its own log stream. The Airflow role can only invoke the Lambda and list and read `raw/*`. No code runs with administrator rights.
-- **Secrets stay local.** Passwords live in a git-ignored `.env`. Staged files are scanned before each push.
+- **No secrets in the repository.** Passwords live in a git-ignored `.env`, and there are no AWS keys anywhere (SSO and IAM roles). GitHub secret scanning with push protection checks every push on the server side.
 - **Private by default.** Both S3 buckets block public access, disable ACLs, are encrypted with SSE-S3 and reject requests that are not over TLS. Docker ports are bound to `127.0.0.1`.
 - **No identifiers in the repo.** Account IDs, ARNs containing them and SSO URLs are never committed; Terraform reads the account ID at plan time.
 - **Known gaps (accepted for a short-lived project account).** Terraform and the SSO session use the AdministratorAccess permission set, and the Lambda role's trust policy names only the Lambda service. Production would add a permission set limited to `battery-optimizer-*` resources, with a permissions boundary so that no project role can be given more rights, and `aws:SourceAccount` / `aws:SourceArn` conditions on the Lambda role's trust policy.
@@ -199,11 +199,12 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
 
 1. **Sign in.** Once: `aws configure sso --profile battery-optimizer` (region eu-north-1). Then, each working day: `aws sso login --profile battery-optimizer`.
 2. **State bucket** (once): `infra\bootstrap\create_state_bucket.cmd <suffix>` (lowercase letters and digits).
-3. **Lambda package:** `python infra\lambda\build_lambda.py` (rebuild after changing the ingestion code).
-4. **AWS resources**, in `infra\terraform`: copy `terraform.tfvars.example` to `terraform.tfvars` and set `bucket_suffix`, then
+3. **Python environments:** `python -m venv .venv`, `.venv\Scripts\activate`, `pip install -r requirements.txt -r requirements-local.txt`; for dbt a separate one: `python -m venv .venv-dbt`, `.venv-dbt\Scripts\activate`, `pip install -r requirements-dbt.txt`.
+4. **Lambda package:** `python infra\lambda\build_lambda.py` (rebuild after changing the ingestion code).
+5. **AWS resources**, in `infra\terraform`: copy `terraform.tfvars.example` to `terraform.tfvars` and set `bucket_suffix`, then
    `terraform init -backend-config="bucket=battery-optimizer-tfstate-<suffix>" -backend-config="profile=battery-optimizer"`,
    `terraform plan -out=tfplan`, review it, and `terraform apply tfplan`.
-5. **Airflow profile:** add to `%USERPROFILE%\.aws\config`, with the account ID from `aws sts get-caller-identity --profile battery-optimizer --query Account --output text`:
+6. **Airflow profile:** add to `%USERPROFILE%\.aws\config`, with the account ID from `aws sts get-caller-identity --profile battery-optimizer --query Account --output text`:
    ```ini
    [profile battery-optimizer-airflow]
    role_arn = arn:aws:iam::<ACCOUNT_ID>:role/battery-optimizer-airflow
@@ -211,12 +212,14 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
    role_session_name = airflow-local
    region = eu-north-1
    ```
-6. **Settings:** copy `.env.example` to `.env`; set `LAKE_BUCKET` (`terraform output lake_bucket_name`) and the Airflow and warehouse values. `.env` holds no AWS keys.
-7. Start the stack with `docker compose up -d` and create the landing table from `sql/`.
-8. In Airflow, unpause `ingest_elpris` and `ingest_svk`. Keep `ingest_daily` paused; it is for backfills only. Scheduled runs need a live SSO session (step 1) that day.
-9. Load and transform: `load_env`, then `python load_raw.py <start> <end>`, then `dbt build` inside `battery_dbt/`.
-10. Query the API: `GET /recommendation?zone=SE3&date=2026-09-15`.
-11. Results: `pip install -r requirements-results.txt`, then `python scripts/make_results.py <start> <end> --as-of <fetch date>`. It rewrites the result tables in this README and `docs/results.md` and the charts in `docs/images/`.
+7. **Settings:** copy `.env.example` to `.env`; set `LAKE_BUCKET` (`terraform output lake_bucket_name`), the Airflow and warehouse values, and `API_READER_PASSWORD` (the API's read-only database login). `.env` holds no AWS keys.
+8. **Stack and database setup:** `docker compose up -d`, then `load_env` and, in the same window, create the landing table and the API's read-only login (the password comes from `.env`, never typed into a command):
+   `docker compose exec -T warehouse psql -U %WAREHOUSE_USER% -d %WAREHOUSE_DB% -v ON_ERROR_STOP=1 < sql\001_create_landing.sql`
+   `docker compose exec -T warehouse psql -U %WAREHOUSE_USER% -d %WAREHOUSE_DB% -v ON_ERROR_STOP=1 -v api_password=%API_READER_PASSWORD% < sql\002_create_api_reader.sql`
+9. In Airflow (http://localhost:8080), unpause `ingest_elpris` and `ingest_svk`. Keep `ingest_daily` paused; it is for backfills only. Scheduled runs need a live SSO session (step 1) that day.
+10. Load and transform: `load_env`; in `.venv`, `python load_raw.py <start> <end>`; then in `.venv-dbt`, `dbt build` inside `battery_dbt\`.
+11. Query the API: http://127.0.0.1:5000/recommendation?zone=SE3&date=2026-09-15
+12. Results: `pip install -r requirements-results.txt`, then `python scripts/make_results.py <start> <end> --as-of <fetch date>`. It rewrites the result tables in this README and `docs/results.md` and the charts in `docs/images/`.
 
 ## Design decisions
 
@@ -224,7 +227,7 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
 - **dbt on Postgres over DuckDB.** A real warehouse with schemas, roles and concurrent readers for the API; DuckDB stays an option for a local Parquet zone later.
 - **Raw kept as bytes in the warehouse.** Landing raw files unparsed means a parsing bug is fixed in dbt and replayed, never re-fetched.
 - **Mixed grain.** Arbitrage runs on 15-minute prices, reserves on hourly prices; the strategies meet as daily totals.
-- **Two strategies instead of one number.** A realistic floor (A) and an honest ceiling (B) bracket what an optimiser could earn.
+- **Two strategies instead of one number.** A single-strategy backtest with hindsight (A) and a theoretical ceiling (B) show how much room an optimiser has between them.
 
 ## Limitations
 
@@ -234,7 +237,7 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
   - FCR-D needs 20 minutes of full activation and 20 % reserved power in the opposite direction. Neither binds for 1 MW / 2 MWh when one direction is sold.
   - mFRR capacity: the unit must deliver all capacity and energy it sold; the capacity-market endurance rule varies by country. Selling 1 MW up all day binds if activations add up to more than about two hours before the battery can recharge. Activation data is not ingested, so this is not checked.
   - No stacking of several products in one hour.
-- **One arbitrage cycle per day.** A second cycle earns less than the first, so twice the arbitrage value bounds any two-cycle result from above. Reserves earn 3.1 to 9.6 times as much as arbitrage on average, and even doubled, arbitrage beats the best reserve product on only 3 (SE1) to 31 (SE3) of 139 days. The headline comparison does not depend on the cycle limit.
+- **One arbitrage cycle per day.** A cycle here is a 2-hour charge block followed by a 2-hour discharge block, both contiguous and at full power. Each cycle of a two-cycle plan made of such blocks is itself a feasible one-cycle plan, so it earns at most the best single cycle, and the whole plan at most twice that. Reserves earn 3.1 to 9.6 times as much as arbitrage on average, and even doubled, arbitrage beats the best reserve product on only 3 (SE1) to 31 (SE3) of 139 days. The bound does not cover plans with non-contiguous blocks or partial power; those are for optimiser C.
 - The battery is a price-taker: its bids never move the price, and every bid is assumed to be accepted.
 - **FCR prices.** Since 2024 all FCR products are priced marginally: every accepted bid is paid the price of the highest accepted bid ([SvK](https://www.svk.se/en/stakeholders-portal/electricity-market/provision-of-ancillary-services/questions-and-answers-about-reserves/bidding-and-trading/how-is-fcr-priced/)). The backtest uses that published hourly price, which is what an accepted bid receives.
 - Perfect foresight: the backtest knows every price of the day in advance.

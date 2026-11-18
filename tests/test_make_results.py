@@ -150,14 +150,16 @@ TLDR_WINNERS = [
 def test_tldr_bullets_are_computed_from_the_data():
     lines = tldr_md(TLDR_SUMMARY, TLDR_WINNERS, 139, "2026-07-01", "2026-11-16").splitlines()
     assert lines == [
-        "- **Reserves beat arbitrage in every zone.** Committing to one strategy per day (A), a 1 MW / 2 MWh "
-        "battery earned 434–542 EUR per day depending on zone, 3–10 times as much as spot arbitrage alone "
+        "- **Reserves beat arbitrage in every zone.** A = the best single strategy per day; B = the theoretical "
+        "ceiling. With perfect foresight and offering the full 1 MW (before the reserve power rules, see "
+        "[Limitations](#limitations)), a 1 MW / 2 MWh battery would have earned between 434 and 542 EUR per day "
+        "depending on zone under A, 3–10 times as much as spot arbitrage alone "
         "(139 days, 2026-07-01 → 2026-11-16). → [Results](#results)",
         "- **One product leads in each zone.** Most often mFRR down in SE1; FCR-N in SE3. Arbitrage was "
         "the best choice on at most 3 of 139 days in any zone. → [Which strategy wins](docs/results.md#which-strategy-wins)",
         "- **The ceiling is not a forecast.** B mixes products quarter by quarter and ignores state of charge. "
         "It is 32–138 % above A, widest in SE3. No real battery can earn it; it marks the room for an "
-        "optimiser (Phase 2). → [Definitions](docs/results.md#definitions)",
+        "optimiser (see [Roadmap](#roadmap-phase-2)). → [Definitions](docs/results.md#definitions)",
     ]
 
 
