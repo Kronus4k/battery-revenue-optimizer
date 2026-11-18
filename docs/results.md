@@ -53,10 +53,10 @@ SE1 mFRR up: 3,245 of 3,337 hours published (10 days with gaps). Unpublished hou
 ## Caveats
 
 - Capacity payments only; activation energy payments are not included.
-- No state-of-charge or endurance rules for reserves, and no stacking of several products in one hour.
+- SvK's reserve power and energy rules for batteries are not modelled, and products are not stacked within an hour. Capping FCR-N at about 0.75 MW, as the 134 % power rule implies, would lower A by 3–21 %; see the README [Limitations](../README.md#limitations).
 - Price-taker: the battery's bids never move a price.
 - Perfect foresight: every price of the day is known in advance.
-- FCR price formation is taken from published results and not independently verified.
+- FCR uses the published marginal price per hour, which every accepted bid receives; acceptance of the battery's bid is assumed.
 - SE1 mFRR up: some hours are not published by the source (see the coverage note above). They count as 0 revenue (conservative). Most likely no capacity was procured in those hours; SvK's documentation does not confirm this.
 - The last month in the window can be partial; the monthly table shows the number of days.
 - The spring daylight-saving day (23 hours) is not yet in the data; how the FCR source labels it is unverified.
