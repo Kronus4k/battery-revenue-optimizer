@@ -75,6 +75,12 @@ Method, assumptions, caveats and monthly figures: [docs/results.md](docs/results
 5. **Serve.** A Flask API returns the best strategy, its revenue and the gap to the ceiling for a zone and date. dbt docs show lineage from every mart column back to the raw landing table.
 6. **Check.** dbt tests run on every build. `verify_backfill.py` lists missing days in the lake. A freshness alert fires at 15:30 if today's data has not arrived.
 
+## Data model
+
+Three dbt layers between the raw landing table and the results: staging parses and types the raw files, intermediate aligns spot and reserve prices to the same hourly grain, and the marts hold daily revenue per strategy and the upper bound. 50 data tests and 2 unit tests run on every build, plus one exact-value test on real fixture days in CI (see [Data quality](#data-quality)); the graph shows models only.
+
+[![dbt lineage graph: raw.landing_files feeds the staging models stg_elpris, stg_fcr and stg_mfrr; stg_elpris feeds int_spot_hourly, fct_arbitrage_daily and mart_upper_bound_daily; stg_fcr and stg_mfrr feed int_reserve_prices_hourly, which feeds fct_reserve_daily and mart_upper_bound_daily; fct_arbitrage_daily and fct_reserve_daily feed mart_strategy_daily](docs/images/dbt_lineage.png)](docs/images/dbt_lineage.png)
+
 ## Tech stack
 
 | Area | Tools |
@@ -132,6 +138,7 @@ Neither is "expected revenue".
 | Freshness alert at 15:30 | Airflow | Today's data has not arrived |
 | 50 dbt data tests | Staging, intermediate, marts | Duplicate keys, nulls, unexpected products and zones, truncated API responses, wrong row counts per day (missing mFRR hours: warning) |
 | 2 dbt unit tests | Staging, marts | FCR parsing of a hand-made 25-hour DST day; arbitrage logic against a hand-calculated day |
+| Exact-value test on real fixtures (CI only) | Marts | Any change in SE3 and SE4 results for a normal day and the October DST day, loaded from real raw files committed in `tests/fixtures/raw/` |
 
 Every check has been seen to fail at least once (a deliberately broken test, a reintroduced bug, or a non-UTC database session) before it was trusted.
 
@@ -144,7 +151,7 @@ Every check has been seen to fail at least once (a deliberately broken test, a r
 - **Raw is immutable.** Files are stored exactly as the source returned them; every fix lives in dbt, where it is versioned and tested.
 - **Idempotent everywhere.** Deterministic S3 keys, upserts in the loader, and dbt models rebuilt from raw, so any day can be re-run safely.
 - **Tested.** pytest for pure Python functions (key parsing, request building), dbt data tests for data properties, dbt unit tests for logic with a known answer.
-- **CI on every pull request.** GitHub Actions on pinned Ubuntu with Python 3.12 compiles the code, runs pytest and runs `dbt build`.
+- **CI on every pull request.** GitHub Actions on pinned Ubuntu with Python 3.12 compiles the code, runs `ruff check` and pytest, loads two real fixture days through the same loader the pipeline uses, runs `dbt build` with exact expected mart values, and checks Terraform formatting and validity.
 - **Small pull requests.** One branch per component, a PR with what, why, evidence and what is not covered, CI green before merge.
 
 ## Security
@@ -222,16 +229,29 @@ Prerequisites: an AWS account with IAM Identity Center (SSO), Terraform 1.11.4, 
 ## Limitations
 
 - Capacity payments only; activation energy payments are not included.
-- No state-of-charge or endurance rules for reserves, and no stacking of several products in one hour.
-- The battery is a price-taker: its bids never move the price.
-- FCR price formation is taken from published results and not independently verified.
+- **Reserve power and energy rules are not modelled.** The backtest offers the full 1 MW in every product. Svenska kraftnät's rules for batteries (limited energy reservoirs) restrict that in part ([SvK Q&A](https://www.svk.se/en/stakeholders-portal/electricity-market/provision-of-ancillary-services/questions-and-answers-about-reserves/limited-energy-reservoirs-ler/can-a-ler-bid-its-entire-capacity-on-the-fcr-markets/), [Nordic TSOs, April 2025](https://www.svk.se/499469/siteassets/om-oss/rapporter/2025/nordic-tsos---batteries-in-the-nordic-reserve-markets-april-2025.pdf); checked 2026-11-18):
+  - FCR-N needs 1 hour of full activation in each direction and reserved power of 134 % of the offered capacity. The energy fits a 2 MWh battery started near 50 % charge, but the power rule caps the offer at about 0.75 MW. Recalculating the existing marts with that cap (a sensitivity check, not a model change) lowers A by 3–21 % (SE4 3 %, SE1 6 %, SE2 16 %, SE3 21 %); FCR-N still wins 118 of 139 days in SE3 (128 without the cap).
+  - FCR-D needs 20 minutes of full activation and 20 % reserved power in the opposite direction. Neither binds for 1 MW / 2 MWh when one direction is sold.
+  - mFRR capacity: the unit must deliver all capacity and energy it sold; the capacity-market endurance rule varies by country. Selling 1 MW up all day binds if activations add up to more than about two hours before the battery can recharge. Activation data is not ingested, so this is not checked.
+  - No stacking of several products in one hour.
+- **One arbitrage cycle per day.** A second cycle earns less than the first, so twice the arbitrage value bounds any two-cycle result from above. Reserves earn 3.1 to 9.6 times as much as arbitrage on average, and even doubled, arbitrage beats the best reserve product on only 3 (SE1) to 31 (SE3) of 139 days. The headline comparison does not depend on the cycle limit.
+- The battery is a price-taker: its bids never move the price, and every bid is assumed to be accepted.
+- **FCR prices.** Since 2024 all FCR products are priced marginally: every accepted bid is paid the price of the highest accepted bid ([SvK](https://www.svk.se/en/stakeholders-portal/electricity-market/provision-of-ancillary-services/questions-and-answers-about-reserves/bidding-and-trading/how-is-fcr-priced/)). The backtest uses that published hourly price, which is what an accepted bid receives.
 - Perfect foresight: the backtest knows every price of the day in advance.
 - Hours a source did not publish earn 0 (conservative). This affects mFRR up in SE1 from 2026-10-16; most likely no capacity was procured in those hours, which SvK's documentation does not confirm.
+- **Scheduled ingestion depends on a daily SSO login.** Airflow invokes the Lambda with credentials from a person's SSO session. If nobody signs in that day, the scheduled runs fail and the day is backfilled later. The production fix is EventBridge Scheduler invoking the Lambda with its own role (no keys, no session), with Airflow kept for backfills, loading and dbt.
+- **The API returns hindsight.** `GET /recommendation` returns the best strategy for a past day with perfect foresight; it is a backtest result, not advice.
 
 ## Roadmap (Phase 2)
 
-- Optimiser C as a linear programme, starting with SE3 and SE4 where the gap to the ceiling is widest
-- Verify SvK reserve rules (endurance, state of charge, stacking) and FCR price formation
+- Optimiser C as a linear programme with several cycles a day, state of charge and the reserve power and energy rules above, starting with SE3 and SE4 where the gap to the ceiling is widest
+- Battery degradation cost per cycle in arbitrage and FCR-N
+- EventBridge Scheduler for daily ingestion, removing the SSO dependency
+- Rename `GET /recommendation` to `GET /backtest`
+- Ingest mFRR activation data, so mFRR endurance can be checked
+- Fixture CI for the spring daylight-saving day (23 hours) once it is in the data (2027-03-28)
+- dbt docs published on GitHub Pages
+- `src/` package layout for the Python code, and `ruff format`
 - Price forecasting model on a feature table, with weather data from the SMHI open API
 - Databricks version of the transformations with a Parquet processed zone
 - BI dashboard (Metabase or Superset)
